@@ -1,30 +1,32 @@
 package br.com.ravikyu.barbercontrol.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "agendamentos")
-public class AgendamentoEntity {
+@Table(name = "pagamentos")
+public class PagamentoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id", nullable = false)
-    private ClienteEntity cliente;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "barbeiro_id", nullable = false)
-    private BarbeiroEntity barbeiro;
+    @OneToOne
+    @JoinColumn(name = "agendamento_id", nullable = false)
+    private AgendamentoEntity agendamento;
 
     @Column(nullable = false)
-    private LocalDateTime dataHora;
+    private BigDecimal valor;
+
+    @Column(nullable = false)
+    private String formaPagamento;
 
     @Column(nullable = false)
     private String status;
+
+    private LocalDateTime pagoEm;
 
     // Getters e Setters
 }
