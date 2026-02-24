@@ -1,2 +1,2 @@
-# barber-ontrol-back
+# barber-control-back
 backend do controle financeiro para barbearias
