@@ -7,5 +7,6 @@ public record BarbeiroResponse(
         UUID id,
         String nome,
         String especialidade,
-        BigDecimal percentualComissao
+        BigDecimal percentualComissao,
+        boolean ativo
 ) {}

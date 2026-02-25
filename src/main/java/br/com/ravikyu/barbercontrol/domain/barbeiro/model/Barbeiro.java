@@ -14,12 +14,15 @@ public class Barbeiro {
     private String nome;
     private String especialidade;
     private BigDecimal percentualComissao;
+    private boolean ativo;
 
-    public Barbeiro(String nome, String especialidade, BigDecimal percentualComissao) {
+    public Barbeiro(UUID id, String nome, String especialidade, BigDecimal percentualComissao, boolean ativo) {
         validarComissao(percentualComissao);
+        this.id = id;
         this.nome = nome;
         this.especialidade = especialidade;
         this.percentualComissao = percentualComissao;
+        this.ativo = ativo;
     }
 
     private void validarComissao(BigDecimal percentual) {

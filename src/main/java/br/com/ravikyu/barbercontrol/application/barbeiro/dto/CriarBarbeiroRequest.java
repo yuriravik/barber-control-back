@@ -10,5 +10,7 @@ public record CriarBarbeiroRequest(
 
         String especialidade,
 
-        BigDecimal percentualComissao
+        BigDecimal percentualComissao,
+
+        boolean ativo
 ) {}

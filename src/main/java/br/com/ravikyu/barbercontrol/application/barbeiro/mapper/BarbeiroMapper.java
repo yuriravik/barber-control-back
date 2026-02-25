@@ -9,9 +9,11 @@ public class BarbeiroMapper {
 
     public static Barbeiro toDomain(CriarBarbeiroRequest request) {
         return new Barbeiro(
+                null,
                 request.nome(),
                 request.especialidade(),
-                request.percentualComissao()
+                request.percentualComissao(),
+                request.ativo()
         );
     }
 
@@ -20,7 +22,8 @@ public class BarbeiroMapper {
                 barbeiro.getId(),
                 barbeiro.getNome(),
                 barbeiro.getEspecialidade(),
-                barbeiro.getPercentualComissao()
+                barbeiro.getPercentualComissao(),
+                barbeiro.isAtivo()
         );
     }
 }
