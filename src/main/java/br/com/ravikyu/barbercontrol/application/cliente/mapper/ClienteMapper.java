@@ -3,12 +3,13 @@ package br.com.ravikyu.barbercontrol.application.cliente.mapper;
 import br.com.ravikyu.barbercontrol.application.cliente.dto.*;
 import br.com.ravikyu.barbercontrol.domain.cliente.model.Cliente;
 
-public class ClienteMapper {
+import java.util.UUID;
 
-    private ClienteMapper() {}
+public class ClienteMapper {
 
     public static Cliente toDomain(CriarClienteRequest request) {
         return new Cliente(
+                null,
                 request.nome(),
                 request.email(),
                 request.telefone()

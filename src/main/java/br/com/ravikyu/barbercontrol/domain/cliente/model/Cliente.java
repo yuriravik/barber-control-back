@@ -16,8 +16,9 @@ public class Cliente {
     private String telefone;
     private LocalDateTime criadoEm;
 
-    public Cliente(String nome, String email, String telefone) {
+    public Cliente(UUID id, String nome, String email, String telefone) {
         validarEmail(email);
+        this.id = id;
         this.nome = nome;
         this.email = email;
         this.telefone = telefone;
@@ -25,7 +26,7 @@ public class Cliente {
     }
 
     private void validarEmail(String email) {
-        if (email == null || !email.contains("@")) {
+        if (email == null) {
             throw new IllegalArgumentException("Email inválido");
         }
     }
@@ -33,6 +34,4 @@ public class Cliente {
     public void alterarTelefone(String telefone) {
         this.telefone = telefone;
     }
-
-    // getters
 }
