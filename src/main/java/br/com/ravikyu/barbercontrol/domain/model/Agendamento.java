@@ -1,6 +1,5 @@
 package br.com.ravikyu.barbercontrol.domain.model;
 
-import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusAgendamento;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,30 +13,28 @@ public class Agendamento {
     private UUID id;
     private UUID clienteId;
     private UUID barbeiroId;
-    private LocalDateTime dataHora;
-    private StatusAgendamento status;
+    private UUID servicoId;
+    private LocalDateTime dataHoraInicio;
+    private LocalDateTime dataHoraFim;
+    private String status;
 
-    public Agendamento(UUID clienteId, UUID barbeiroId, LocalDateTime dataHora) {
-        validarData(dataHora);
+    public Agendamento(UUID id,
+                       UUID clienteId,
+                       UUID barbeiroId,
+                       UUID servicoId,
+                       LocalDateTime dataHoraInicio,
+                       LocalDateTime dataHoraFim,
+                       String status) {
+        this.id = id;
         this.clienteId = clienteId;
         this.barbeiroId = barbeiroId;
-        this.dataHora = dataHora;
-        this.status = StatusAgendamento.AGENDADO;
+        this.servicoId = servicoId;
+        this.dataHoraInicio = dataHoraInicio;
+        this.dataHoraFim = dataHoraFim;
+        this.status = status;
     }
 
-    private void validarData(LocalDateTime dataHora) {
-        if (dataHora.isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Data inválida");
-        }
-    }
+    public Agendamento() {}
 
-    public void cancelar() {
-        this.status = StatusAgendamento.CANCELADO;
-    }
-
-    public void concluir() {
-        this.status = StatusAgendamento.CONCLUIDO;
-    }
-
-    // getters e setId
+    // getters e setters
 }

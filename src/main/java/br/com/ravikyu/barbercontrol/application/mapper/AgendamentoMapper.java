@@ -1,6 +1,7 @@
 package br.com.ravikyu.barbercontrol.application.mapper;
 
-import br.com.ravikyu.barbercontrol.application.agendamento.dto.*;
+import br.com.ravikyu.barbercontrol.application.dto.AgendamentoResponse;
+import br.com.ravikyu.barbercontrol.application.dto.CriarAgendamentoRequest;
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 
 public class AgendamentoMapper {
@@ -9,9 +10,13 @@ public class AgendamentoMapper {
 
     public static Agendamento toDomain(CriarAgendamentoRequest request) {
         return new Agendamento(
+                null,
                 request.clienteId(),
                 request.barbeiroId(),
-                request.dataHora()
+                request.servicoId(),
+                request.dataHora(),
+                request.dataHoraFim(),
+                request.status()
         );
     }
 
@@ -20,8 +25,10 @@ public class AgendamentoMapper {
                 agendamento.getId(),
                 agendamento.getClienteId(),
                 agendamento.getBarbeiroId(),
-                agendamento.getDataHora(),
-                agendamento.getStatus().name()
+                agendamento.getServicoId(),
+                agendamento.getDataHoraInicio(),
+                agendamento.getDataHoraFim(),
+                agendamento.getStatus()
         );
     }
 }

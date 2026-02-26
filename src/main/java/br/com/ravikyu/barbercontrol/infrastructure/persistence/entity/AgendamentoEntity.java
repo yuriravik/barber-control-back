@@ -1,30 +1,32 @@
 package br.com.ravikyu.barbercontrol.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "agendamentos")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class AgendamentoEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id", nullable = false)
-    private ClienteEntity cliente;
+    private UUID clienteId;
+    private UUID barbeiroId;
+    private UUID servicoId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "barbeiro_id", nullable = false)
-    private BarbeiroEntity barbeiro;
+    private LocalDateTime dataHoraInicio;
+    private LocalDateTime dataHoraFim;
 
-    @Column(nullable = false)
-    private LocalDateTime dataHora;
-
-    @Column(nullable = false)
     private String status;
-
-    // Getters e Setters
 }

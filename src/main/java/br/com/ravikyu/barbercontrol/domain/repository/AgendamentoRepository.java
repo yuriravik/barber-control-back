@@ -1,4 +1,19 @@
 package br.com.ravikyu.barbercontrol.domain.repository;
 
-public class AgendamentoRepository {
+import br.com.ravikyu.barbercontrol.application.dto.CriarAgendamentoRequest;
+import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface AgendamentoRepository {
+
+    Agendamento salvar(Agendamento agendamento);
+
+    Optional<Agendamento> buscarPorId(UUID id);
+
+    List<Agendamento> listar();
+
+    void deletar(UUID id);
 }

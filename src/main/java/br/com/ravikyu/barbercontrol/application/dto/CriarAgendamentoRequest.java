@@ -1,8 +1,9 @@
-package br.com.ravikyu.barbercontrol.application.agendamento.dto;
+package br.com.ravikyu.barbercontrol.application.dto;
 
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.UUID;
+
 
 public record CriarAgendamentoRequest(
 
@@ -13,5 +14,13 @@ public record CriarAgendamentoRequest(
         UUID barbeiroId,
 
         @NotNull
-        LocalDateTime dataHora
+        UUID servicoId,
+
+        @NotNull
+        LocalDateTime dataHora,
+
+        LocalDateTime dataHoraFim,
+
+        String status
+
 ) {}
