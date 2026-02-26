@@ -1,7 +1,8 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
-import br.com.ravikyu.barbercontrol.application.barbeiro.dto.*;
-import br.com.ravikyu.barbercontrol.application.barbeiro.service.BarbeiroService;
+import br.com.ravikyu.barbercontrol.application.dto.barbeiro.BarbeiroResponse;
+import br.com.ravikyu.barbercontrol.application.dto.barbeiro.CriarBarbeiroRequest;
+import br.com.ravikyu.barbercontrol.application.service.BarbeiroService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

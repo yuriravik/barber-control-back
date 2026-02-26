@@ -1,11 +1,8 @@
 package br.com.ravikyu.barbercontrol.infrastructure.persistence.mapper;
 
 import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
-import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
-import br.com.ravikyu.barbercontrol.domain.cliente.model.Cliente;
+import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.ClienteEntity;
-
-import java.util.UUID;
 
 public class ClienteEntityMapper {
 

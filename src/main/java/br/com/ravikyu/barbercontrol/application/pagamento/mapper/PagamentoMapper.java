@@ -1,7 +1,8 @@
 package br.com.ravikyu.barbercontrol.application.pagamento.mapper;
 
 import br.com.ravikyu.barbercontrol.application.pagamento.dto.*;
-import br.com.ravikyu.barbercontrol.domain.pagamento.model.*;
+import br.com.ravikyu.barbercontrol.domain.model.enuns.FormaPagamento;
+import br.com.ravikyu.barbercontrol.domain.model.Pagamento;
 
 public class PagamentoMapper {
 

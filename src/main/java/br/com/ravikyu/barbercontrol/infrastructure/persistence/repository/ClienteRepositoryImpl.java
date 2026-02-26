@@ -1,7 +1,7 @@
 package br.com.ravikyu.barbercontrol.infrastructure.persistence.repository;
 
-import br.com.ravikyu.barbercontrol.domain.cliente.model.Cliente;
-import br.com.ravikyu.barbercontrol.domain.cliente.repository.ClienteRepository;
+import br.com.ravikyu.barbercontrol.domain.model.Cliente;
+import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.ClienteEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

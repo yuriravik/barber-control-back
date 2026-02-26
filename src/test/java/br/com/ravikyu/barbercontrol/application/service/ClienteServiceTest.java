@@ -2,8 +2,8 @@ package br.com.ravikyu.barbercontrol.application.service;
 
 import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
-import br.com.ravikyu.barbercontrol.domain.cliente.model.Cliente;
-import br.com.ravikyu.barbercontrol.domain.cliente.repository.ClienteRepository;
+import br.com.ravikyu.barbercontrol.domain.model.Cliente;
+import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

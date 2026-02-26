@@ -2,7 +2,7 @@ package br.com.ravikyu.barbercontrol.application.cliente.service;
 
 import br.com.ravikyu.barbercontrol.application.cliente.dto.*;
 import br.com.ravikyu.barbercontrol.application.cliente.mapper.ClienteMapper;
-import br.com.ravikyu.barbercontrol.domain.cliente.repository.ClienteRepository;
+import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

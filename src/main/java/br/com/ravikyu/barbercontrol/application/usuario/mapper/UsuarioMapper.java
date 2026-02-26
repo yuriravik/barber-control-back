@@ -1,7 +1,7 @@
 package br.com.ravikyu.barbercontrol.application.usuario.mapper;
 
-import br.com.ravikyu.barbercontrol.domain.usuario.model.Usuario;
-import br.com.ravikyu.barbercontrol.domain.usuario.model.Role;
+import br.com.ravikyu.barbercontrol.domain.model.Usuario;
+import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.*;
 
 public class UsuarioMapper {

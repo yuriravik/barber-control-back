@@ -1,9 +1,7 @@
 package br.com.ravikyu.barbercontrol.application.cliente.mapper;
 
 import br.com.ravikyu.barbercontrol.application.cliente.dto.*;
-import br.com.ravikyu.barbercontrol.domain.cliente.model.Cliente;
-
-import java.util.UUID;
+import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 
 public class ClienteMapper {
 

@@ -1,7 +1,7 @@
 package br.com.ravikyu.barbercontrol.infrastructure.persistence.repository;
 
-import br.com.ravikyu.barbercontrol.domain.barbeiro.model.Barbeiro;
-import br.com.ravikyu.barbercontrol.domain.barbeiro.repository.BarbeiroRepository;
+import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
+import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.BarbeiroEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
