@@ -15,7 +15,6 @@ public class ServicoService {
     private final ServicoRepository repository;
 
     public Servico criar(Servico servico) {
-        servico.setId(UUID.randomUUID());
         servico.setAtivo(true);
         return repository.salvar(servico);
     }

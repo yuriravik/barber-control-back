@@ -1,12 +1,13 @@
-package br.com.ravikyu.barbercontrol.application.dto.mapper;
+package br.com.ravikyu.barbercontrol.application.mapper;
 
-import br.com.ravikyu.barbercontrol.application.dto.ServicoDto;
+import br.com.ravikyu.barbercontrol.application.dto.CriarServicoRequest;
+import br.com.ravikyu.barbercontrol.application.dto.ServicoResponse;
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
 
 public class ServicoMapper {
 
-    public static ServicoDto toDto(Servico servico) {
-        return new ServicoDto(
+    public static ServicoResponse toDomain(Servico servico) {
+        return new ServicoResponse(
                 servico.getId(),
                 servico.getNome(),
                 servico.getDescricao(),
@@ -16,9 +17,9 @@ public class ServicoMapper {
         );
     }
 
-    public static Servico toDomain(ServicoDto dto) {
+    public static Servico toRequest(CriarServicoRequest dto) {
         return new Servico(
-                dto.id(),
+                null,
                 dto.nome(),
                 dto.descricao(),
                 dto.preco(),
