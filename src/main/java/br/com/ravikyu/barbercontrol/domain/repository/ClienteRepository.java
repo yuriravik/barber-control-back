@@ -12,7 +12,7 @@ public interface ClienteRepository {
 
     List<Cliente> listar();
 
-    Optional<Cliente> buscarPorId(UUID id);
+    Cliente buscarPorId(UUID id);
 
     void deletar(UUID id);
 }

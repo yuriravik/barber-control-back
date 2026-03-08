@@ -5,9 +5,9 @@ import java.util.UUID;
 
 public record AgendamentoResponse(
         UUID id,
-        UUID clienteId,
-        UUID barbeiroId,
-        UUID servicoId,
+        String cliente,
+        String barbeiro,
+        String servico,
         LocalDateTime dataHoraInicio,
         LocalDateTime dataHoraFim,
         String status

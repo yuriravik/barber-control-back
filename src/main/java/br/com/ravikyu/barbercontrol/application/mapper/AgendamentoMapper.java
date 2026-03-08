@@ -19,16 +19,4 @@ public class AgendamentoMapper {
                 request.status()
         );
     }
-
-    public static AgendamentoResponse toResponse(Agendamento agendamento) {
-        return new AgendamentoResponse(
-                agendamento.getId(),
-                agendamento.getClienteId(),
-                agendamento.getBarbeiroId(),
-                agendamento.getServicoId(),
-                agendamento.getDataHoraInicio(),
-                agendamento.getDataHoraFim(),
-                agendamento.getStatus()
-        );
-    }
 }

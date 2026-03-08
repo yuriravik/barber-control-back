@@ -1,23 +1,31 @@
 package br.com.ravikyu.barbercontrol.application.service;
 
+import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
+import br.com.ravikyu.barbercontrol.application.cliente.mapper.ClienteMapper;
+import br.com.ravikyu.barbercontrol.application.dto.AgendamentoResponse;
 import br.com.ravikyu.barbercontrol.application.dto.CriarAgendamentoRequest;
 import br.com.ravikyu.barbercontrol.application.mapper.AgendamentoMapper;
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 import br.com.ravikyu.barbercontrol.domain.repository.AgendamentoRepository;
+import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
+import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AgendamentoService {
 
     private final AgendamentoRepository repository;
+    private final BarbeiroRepository barbeiroRepository;
+    private final ClienteRepository clienteRepository;
     private final ServicoRepository servicoRepository;
 
-    public Agendamento criar(CriarAgendamentoRequest agendamento) {
+    public AgendamentoResponse criar(CriarAgendamentoRequest agendamento) {
 
 
         var agenda = AgendamentoMapper.toDomain(agendamento);
@@ -30,11 +38,33 @@ public class AgendamentoService {
         );
 
         agenda.setStatus("AGENDADO");
+        var id = repository.salvar(agenda).getId();
 
-        return repository.salvar(agendamento);
+        return buscar(id);
     }
 
-    public List<Agendamento> listar() {
-        return repository.listar();
+    public List<AgendamentoResponse> listar() {
+        var agendamentos = repository.listar();
+        return agendamentos.stream().map(agendamento -> buscar(agendamento.getId())).toList();
+    }
+
+    public AgendamentoResponse buscar(UUID id) {
+        var agendamento = repository.buscarPorId(id)
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        var cliente = clienteRepository.buscarPorId(agendamento.getClienteId());
+        var barbeiro = barbeiroRepository.buscarPorId(agendamento.getBarbeiroId());
+        var servico = servicoRepository.buscarPorId(agendamento.getServicoId());
+        return new AgendamentoResponse(
+                agendamento.getId(),
+                cliente.getNome(),
+                barbeiro.get().getNome(),
+                servico.get().getNome(),
+                agendamento.getDataHoraInicio(),
+                agendamento.getDataHoraFim(),
+                agendamento.getStatus());
+    }
+
+    public void deletar(UUID id) {
+        repository.deletar(id);
     }
 }

@@ -1,6 +1,5 @@
 package br.com.ravikyu.barbercontrol.domain.repository;
 
-import br.com.ravikyu.barbercontrol.application.dto.CriarAgendamentoRequest;
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 
 import java.util.List;
@@ -9,7 +8,7 @@ import java.util.UUID;
 
 public interface AgendamentoRepository {
 
-    Agendamento salvar(CriarAgendamentoRequest agendamento);
+    Agendamento salvar(Agendamento agendamento);
 
     Optional<Agendamento> buscarPorId(UUID id);
 

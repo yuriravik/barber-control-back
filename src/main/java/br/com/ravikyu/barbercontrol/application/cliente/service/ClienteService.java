@@ -31,9 +31,9 @@ public class ClienteService {
     }
 
     public ClienteResponse buscar(UUID id) {
-        return repository.buscarPorId(id)
-                .map(ClienteMapper::toResponse)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        return ClienteMapper.toResponse(repository.buscarPorId(id));
+
+
     }
 
     public void deletar(UUID id) {
