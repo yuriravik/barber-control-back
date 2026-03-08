@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public interface AgendamentoRepository {
 
-    Agendamento salvar(Agendamento agendamento);
+    Agendamento salvar(CriarAgendamentoRequest agendamento);
 
     Optional<Agendamento> buscarPorId(UUID id);
 

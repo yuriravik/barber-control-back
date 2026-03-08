@@ -31,8 +31,8 @@ public class ClienteRepositoryImpl implements ClienteRepository {
         return new Cliente(
                 salvo.getId(),
                 salvo.getNome(),
-                salvo.getTelefone(),
-                salvo.getEmail()
+                salvo.getEmail(),
+                salvo.getTelefone()
         );
     }
 

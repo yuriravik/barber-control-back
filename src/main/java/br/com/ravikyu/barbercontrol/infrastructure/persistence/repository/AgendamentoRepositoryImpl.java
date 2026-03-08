@@ -18,15 +18,15 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
     private final AgendamentoJpaRepository jpaRepository;
 
     @Override
-    public Agendamento salvar(Agendamento agendamento) {
+    public Agendamento salvar(CriarAgendamentoRequest agendamento) {
 
         AgendamentoEntity entity = new AgendamentoEntity();
-        entity.setClienteId(agendamento.getClienteId());
-        entity.setBarbeiroId(agendamento.getBarbeiroId());
-        entity.setServicoId(agendamento.getServicoId());
-        entity.setDataHoraInicio(agendamento.getDataHoraInicio());
-        entity.setDataHoraFim(agendamento.getDataHoraFim());
-        entity.setStatus(agendamento.getStatus());
+        entity.setClienteId(agendamento.clienteId());
+        entity.setBarbeiroId(agendamento.barbeiroId());
+        entity.setServicoId(agendamento.servicoId());
+        entity.setDataHoraInicio(agendamento.dataHora());
+        entity.setDataHoraFim(agendamento.dataHoraFim());
+        entity.setStatus(agendamento.status());
 
         AgendamentoEntity salvo = jpaRepository.save(entity);
 
