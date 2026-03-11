@@ -3,6 +3,7 @@ package br.com.ravikyu.barbercontrol.application.cliente.service;
 import br.com.ravikyu.barbercontrol.application.cliente.dto.*;
 import br.com.ravikyu.barbercontrol.application.cliente.mapper.ClienteMapper;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
+import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +32,9 @@ public class ClienteService {
     }
 
     public ClienteResponse buscar(UUID id) {
-        return ClienteMapper.toResponse(repository.buscarPorId(id));
-
-
+        var cliente = repository.buscarPorId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
+        return ClienteMapper.toResponse(cliente);
     }
 
     public void deletar(UUID id) {

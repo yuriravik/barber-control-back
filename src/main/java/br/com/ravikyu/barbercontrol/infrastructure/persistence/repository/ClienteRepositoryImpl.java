@@ -50,15 +50,14 @@ public class ClienteRepositoryImpl implements ClienteRepository {
     }
 
     @Override
-    public Cliente buscarPorId(UUID id) {
-        var cliente = jpaRepository.findById(id).get();
-
-        return new Cliente(
-                        cliente.getId(),
-                        cliente.getNome(),
-                        cliente.getTelefone(),
-                        cliente.getEmail()
-                );
+    public Optional<Cliente> buscarPorId(UUID id) {
+        return jpaRepository.findById(id)
+                .map(e -> new Cliente(
+                        e.getId(),
+                        e.getNome(),
+                        e.getEmail(),
+                        e.getTelefone()
+                ));
     }
 
     @Override

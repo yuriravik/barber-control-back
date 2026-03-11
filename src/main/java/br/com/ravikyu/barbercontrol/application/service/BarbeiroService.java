@@ -5,6 +5,7 @@ import br.com.ravikyu.barbercontrol.application.dto.barbeiro.CriarBarbeiroReques
 import br.com.ravikyu.barbercontrol.application.mapper.BarbeiroMapper;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
+import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,14 +35,14 @@ public class BarbeiroService {
 
     public void desativar(UUID id) {
         var barbeiro = repository.buscarPorId(id)
-                .orElseThrow(() -> new RuntimeException("Barbeiro não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Barbeiro não encontrado"));
 
         var atualizado = new Barbeiro(
                 barbeiro.getId(),
                 barbeiro.getNome(),
                 barbeiro.getEspecialidade(),
                 barbeiro.getPercentualComissao(),
-                barbeiro.isAtivo()
+                false
         );
 
         repository.salvar(atualizado);
