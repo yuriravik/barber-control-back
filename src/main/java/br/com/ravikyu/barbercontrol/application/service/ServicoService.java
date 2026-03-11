@@ -2,6 +2,7 @@ package br.com.ravikyu.barbercontrol.application.service;
 
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
+import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class ServicoService {
 
     public Servico buscar(UUID id) {
         return repository.buscarPorId(id)
-                .orElseThrow(() -> new RuntimeException("Serviço não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
     }
 
     public void deletar(UUID id) {
