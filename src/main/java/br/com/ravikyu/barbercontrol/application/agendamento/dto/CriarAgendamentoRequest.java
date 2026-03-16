@@ -7,16 +7,16 @@ import java.util.UUID;
 
 public record CriarAgendamentoRequest(
 
-        @NotNull
+        @NotNull(message = "Cliente é obrigatório")
         UUID clienteId,
 
-        @NotNull
+        @NotNull(message = "Barbeiro é obrigatório")
         UUID barbeiroId,
 
-        @NotNull
+        @NotNull(message = "Serviço é obrigatório")
         UUID servicoId,
 
-        @NotNull
+        @NotNull(message = "Data e hora são obrigatórias")
         LocalDateTime dataHora
 
 ) {}
