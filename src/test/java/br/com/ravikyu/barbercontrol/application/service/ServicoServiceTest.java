@@ -1,5 +1,8 @@
 package br.com.ravikyu.barbercontrol.application.service;
 
+import br.com.ravikyu.barbercontrol.application.servico.dto.CriarServicoRequest;
+import br.com.ravikyu.barbercontrol.application.servico.dto.ServicoResponse;
+import br.com.ravikyu.barbercontrol.application.servico.service.ServicoService;
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
@@ -30,9 +33,8 @@ class ServicoServiceTest {
     @Test
     @DisplayName("deveCriarServicoComSucesso")
     void deveCriarServicoComSucesso() {
-        var servico = Instancio.of(Servico.class)
-                .set(field(Servico.class, "id"), null)
-                .set(field(Servico.class, "ativo"), false)
+        var request = Instancio.of(CriarServicoRequest.class)
+                .generate(field(CriarServicoRequest.class, "nome"), gen -> gen.string().minLength(1))
                 .create();
         var salvo = Instancio.of(Servico.class)
                 .set(field(Servico.class, "ativo"), true)
@@ -40,24 +42,24 @@ class ServicoServiceTest {
 
         when(repository.salvar(any())).thenReturn(salvo);
 
-        var response = service.criar(servico);
+        var response = service.criar(request);
 
         assertNotNull(response);
-        assertTrue(response.isAtivo());
+        assertTrue(response.ativo());
         verify(repository, times(1)).salvar(argThat(Servico::isAtivo));
     }
 
     @Test
     @DisplayName("deveDefinirAtivoTrueAoCriarServico")
     void deveDefinirAtivoTrueAoCriarServico() {
-        var servico = Instancio.of(Servico.class)
-                .set(field(Servico.class, "ativo"), false)
+        var request = Instancio.of(CriarServicoRequest.class)
+                .generate(field(CriarServicoRequest.class, "nome"), gen -> gen.string().minLength(1))
                 .create();
         var salvo = Instancio.of(Servico.class).set(field(Servico.class, "ativo"), true).create();
 
         when(repository.salvar(any())).thenReturn(salvo);
 
-        service.criar(servico);
+        service.criar(request);
 
         verify(repository).salvar(argThat(Servico::isAtivo));
     }
@@ -97,7 +99,7 @@ class ServicoServiceTest {
         var response = service.buscar(servico.getId());
 
         assertNotNull(response);
-        assertEquals(servico.getId(), response.getId());
+        assertEquals(servico.getId(), response.id());
         verify(repository, times(1)).buscarPorId(servico.getId());
     }
 

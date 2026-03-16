@@ -40,8 +40,8 @@ class ClienteServiceTest {
     void deveCriarClienteComSucesso() {
         CriarClienteRequest dto = new CriarClienteRequest(
                 "Yuri",
-                "85999999999",
-                "yuri@email.com"
+                "yuri@email.com",
+                "85999999999"
         );
 
         Cliente clienteSalvo = Instancio.of(Cliente.class)

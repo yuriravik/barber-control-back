@@ -43,8 +43,8 @@ public class ClienteRepositoryImpl implements ClienteRepository {
                 .map(e -> new Cliente(
                         e.getId(),
                         e.getNome(),
-                        e.getTelefone(),
-                        e.getEmail()
+                        e.getEmail(),
+                        e.getTelefone()
                 ))
                 .toList();
     }

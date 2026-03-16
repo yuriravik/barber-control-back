@@ -1,7 +1,7 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
-import br.com.ravikyu.barbercontrol.application.service.ServicoService;
-import br.com.ravikyu.barbercontrol.domain.model.Servico;
+import br.com.ravikyu.barbercontrol.application.servico.dto.ServicoResponse;
+import br.com.ravikyu.barbercontrol.application.servico.service.ServicoService;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
@@ -34,8 +34,8 @@ class ServicoControllerTest {
     @Test
     @DisplayName("deveCriarServicoComSucesso")
     void deveCriarServicoComSucesso() throws Exception {
-        var servico = Instancio.of(Servico.class)
-                .set(field(Servico.class, "ativo"), true)
+        var servico = Instancio.of(ServicoResponse.class)
+                .set(field(ServicoResponse.class, "ativo"), true)
                 .create();
 
         when(service.criar(any())).thenReturn(servico);
@@ -47,14 +47,13 @@ class ServicoControllerTest {
                                     "nome": "Corte Simples",
                                     "descricao": "Corte básico",
                                     "preco": 30.00,
-                                    "duracaoMinutos": 30,
-                                    "ativo": true
+                                    "duracaoMinutos": 30
                                 }
                                 """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(servico.getId().toString()))
-                .andExpect(jsonPath("$.nome").value(servico.getNome()))
-                .andExpect(jsonPath("$.ativo").value(servico.isAtivo()));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(servico.id().toString()))
+                .andExpect(jsonPath("$.nome").value(servico.nome()))
+                .andExpect(jsonPath("$.ativo").value(servico.ativo()));
 
         verify(service, times(1)).criar(any());
     }
@@ -62,7 +61,7 @@ class ServicoControllerTest {
     @Test
     @DisplayName("deveListarServicosComSucesso")
     void deveListarServicosComSucesso() throws Exception {
-        var servicos = Instancio.ofList(Servico.class).size(2).create();
+        var servicos = Instancio.ofList(ServicoResponse.class).size(2).create();
 
         when(service.listar()).thenReturn(servicos);
 
@@ -76,16 +75,16 @@ class ServicoControllerTest {
     @Test
     @DisplayName("deveBuscarServicoPorIdComSucesso")
     void deveBuscarServicoPorIdComSucesso() throws Exception {
-        var servico = Instancio.create(Servico.class);
+        var servico = Instancio.create(ServicoResponse.class);
 
-        when(service.buscar(servico.getId())).thenReturn(servico);
+        when(service.buscar(servico.id())).thenReturn(servico);
 
-        mockMvc.perform(get("/servicos/{id}", servico.getId()))
+        mockMvc.perform(get("/servicos/{id}", servico.id()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(servico.getId().toString()))
-                .andExpect(jsonPath("$.nome").value(servico.getNome()));
+                .andExpect(jsonPath("$.id").value(servico.id().toString()))
+                .andExpect(jsonPath("$.nome").value(servico.nome()));
 
-        verify(service, times(1)).buscar(servico.getId());
+        verify(service, times(1)).buscar(servico.id());
     }
 
     @Test
@@ -109,7 +108,7 @@ class ServicoControllerTest {
         doNothing().when(service).deletar(id);
 
         mockMvc.perform(delete("/servicos/{id}", id))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(service, times(1)).deletar(id);
     }

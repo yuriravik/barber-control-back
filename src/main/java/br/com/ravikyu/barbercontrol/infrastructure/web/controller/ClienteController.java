@@ -1,9 +1,11 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
-import br.com.ravikyu.barbercontrol.application.cliente.dto.*;
+import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
+import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +19,7 @@ public class ClienteController {
     private final ClienteService service;
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ClienteResponse criar(@RequestBody @Valid CriarClienteRequest dto) {
         return service.criar(dto);
     }
@@ -32,6 +35,7 @@ public class ClienteController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletar(@PathVariable UUID id) {
         service.deletar(id);
     }

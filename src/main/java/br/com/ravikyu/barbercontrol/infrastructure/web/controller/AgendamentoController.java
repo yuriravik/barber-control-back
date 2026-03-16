@@ -1,11 +1,11 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
-import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
-import br.com.ravikyu.barbercontrol.application.dto.AgendamentoResponse;
-import br.com.ravikyu.barbercontrol.application.dto.CriarAgendamentoRequest;
-import br.com.ravikyu.barbercontrol.application.service.AgendamentoService;
-import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
+import br.com.ravikyu.barbercontrol.application.agendamento.dto.AgendamentoResponse;
+import br.com.ravikyu.barbercontrol.application.agendamento.dto.CriarAgendamentoRequest;
+import br.com.ravikyu.barbercontrol.application.agendamento.service.AgendamentoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +19,8 @@ public class AgendamentoController {
     private final AgendamentoService service;
 
     @PostMapping
-    public AgendamentoResponse criar(@RequestBody CriarAgendamentoRequest agendamento) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public AgendamentoResponse criar(@RequestBody @Valid CriarAgendamentoRequest agendamento) {
         return service.criar(agendamento);
     }
 
@@ -34,6 +35,7 @@ public class AgendamentoController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletar(@PathVariable UUID id) {
         service.deletar(id);
     }

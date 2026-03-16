@@ -1,8 +1,8 @@
-package br.com.ravikyu.barbercontrol.application.service;
+package br.com.ravikyu.barbercontrol.application.agendamento.service;
 
-import br.com.ravikyu.barbercontrol.application.dto.AgendamentoResponse;
-import br.com.ravikyu.barbercontrol.application.dto.CriarAgendamentoRequest;
-import br.com.ravikyu.barbercontrol.application.mapper.AgendamentoMapper;
+import br.com.ravikyu.barbercontrol.application.agendamento.dto.AgendamentoResponse;
+import br.com.ravikyu.barbercontrol.application.agendamento.dto.CriarAgendamentoRequest;
+import br.com.ravikyu.barbercontrol.application.agendamento.mapper.AgendamentoMapper;
 import br.com.ravikyu.barbercontrol.domain.repository.AgendamentoRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
@@ -23,27 +23,24 @@ public class AgendamentoService {
     private final ClienteRepository clienteRepository;
     private final ServicoRepository servicoRepository;
 
-    public AgendamentoResponse criar(CriarAgendamentoRequest agendamento) {
-
-
-        var agenda = AgendamentoMapper.toDomain(agendamento);
+    public AgendamentoResponse criar(CriarAgendamentoRequest request) {
+        var agenda = AgendamentoMapper.toDomain(request);
         var servico = servicoRepository.buscarPorId(agenda.getServicoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
 
         agenda.setDataHoraFim(
-                agenda.getDataHoraInicio()
-                        .plusMinutes(servico.getDuracaoMinutos())
+                agenda.getDataHoraInicio().plusMinutes(servico.getDuracaoMinutos())
         );
 
-        agenda.setStatus("AGENDADO");
         var id = repository.salvar(agenda).getId();
-
         return buscar(id);
     }
 
     public List<AgendamentoResponse> listar() {
-        var agendamentos = repository.listar();
-        return agendamentos.stream().map(agendamento -> buscar(agendamento.getId())).toList();
+        return repository.listar()
+                .stream()
+                .map(a -> buscar(a.getId()))
+                .toList();
     }
 
     public AgendamentoResponse buscar(UUID id) {
@@ -55,6 +52,7 @@ public class AgendamentoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Barbeiro não encontrado"));
         var servico = servicoRepository.buscarPorId(agendamento.getServicoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
+
         return new AgendamentoResponse(
                 agendamento.getId(),
                 cliente.getNome(),
@@ -62,7 +60,8 @@ public class AgendamentoService {
                 servico.getNome(),
                 agendamento.getDataHoraInicio(),
                 agendamento.getDataHoraFim(),
-                agendamento.getStatus());
+                agendamento.getStatus().name()
+        );
     }
 
     public void deletar(UUID id) {

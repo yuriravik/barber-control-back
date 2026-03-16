@@ -1,4 +1,4 @@
-package br.com.ravikyu.barbercontrol.application.dto;
+package br.com.ravikyu.barbercontrol.application.agendamento.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

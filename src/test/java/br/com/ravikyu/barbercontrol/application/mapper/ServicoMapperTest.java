@@ -1,6 +1,7 @@
 package br.com.ravikyu.barbercontrol.application.mapper;
 
-import br.com.ravikyu.barbercontrol.application.dto.CriarServicoRequest;
+import br.com.ravikyu.barbercontrol.application.servico.dto.CriarServicoRequest;
+import br.com.ravikyu.barbercontrol.application.servico.mapper.ServicoMapper;
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -18,27 +19,26 @@ class ServicoMapperTest {
                 .generate(field(CriarServicoRequest.class, "nome"), gen -> gen.string().minLength(1))
                 .create();
 
-        var servico = ServicoMapper.toRequest(request);
+        var servico = ServicoMapper.toDomain(request);
 
         assertNull(servico.getId());
         assertEquals(request.nome(), servico.getNome());
         assertEquals(request.descricao(), servico.getDescricao());
         assertEquals(request.preco(), servico.getPreco());
         assertEquals(request.duracaoMinutos(), servico.getDuracaoMinutos());
-        assertEquals(request.ativo(), servico.isAtivo());
+        assertTrue(servico.isAtivo());
     }
 
     @Test
-    @DisplayName("deveMapearRequestInativo")
-    void deveMapearRequestInativo() {
+    @DisplayName("deveMapearRequestSempreAtivo")
+    void deveMapearRequestSempreAtivo() {
         var request = Instancio.of(CriarServicoRequest.class)
                 .generate(field(CriarServicoRequest.class, "nome"), gen -> gen.string().minLength(1))
-                .set(field(CriarServicoRequest.class, "ativo"), false)
                 .create();
 
-        var servico = ServicoMapper.toRequest(request);
+        var servico = ServicoMapper.toDomain(request);
 
-        assertFalse(servico.isAtivo());
+        assertTrue(servico.isAtivo());
     }
 
     @Test
@@ -46,7 +46,7 @@ class ServicoMapperTest {
     void deveMapearDomainParaResponse() {
         var servico = Instancio.create(Servico.class);
 
-        var response = ServicoMapper.toDomain(servico);
+        var response = ServicoMapper.toResponse(servico);
 
         assertEquals(servico.getId(), response.id());
         assertEquals(servico.getNome(), response.nome());
@@ -63,7 +63,7 @@ class ServicoMapperTest {
                 .set(field(Servico.class, "ativo"), false)
                 .create();
 
-        var response = ServicoMapper.toDomain(servico);
+        var response = ServicoMapper.toResponse(servico);
 
         assertFalse(response.ativo());
     }

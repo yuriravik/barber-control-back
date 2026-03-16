@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.domain.model;
 
+import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusAgendamento;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,7 @@ class AgendamentoTest {
     @DisplayName("deveCriarAgendamentoComSucesso")
     void deveCriarAgendamentoComSucesso() {
         var agendamento = Instancio.of(Agendamento.class)
-                .set(field(Agendamento.class, "status"), "AGENDADO")
+                .set(field(Agendamento.class, "status"), StatusAgendamento.AGENDADO)
                 .create();
 
         assertNotNull(agendamento.getId());
@@ -21,7 +22,7 @@ class AgendamentoTest {
         assertNotNull(agendamento.getBarbeiroId());
         assertNotNull(agendamento.getServicoId());
         assertNotNull(agendamento.getDataHoraInicio());
-        assertEquals("AGENDADO", agendamento.getStatus());
+        assertEquals(StatusAgendamento.AGENDADO, agendamento.getStatus());
     }
 
     @Test
@@ -38,12 +39,12 @@ class AgendamentoTest {
     @DisplayName("devePermitirAlterarStatus")
     void devePermitirAlterarStatus() {
         var agendamento = Instancio.of(Agendamento.class)
-                .set(field(Agendamento.class, "status"), "AGENDADO")
+                .set(field(Agendamento.class, "status"), StatusAgendamento.AGENDADO)
                 .create();
 
-        agendamento.setStatus("CANCELADO");
+        agendamento.setStatus(StatusAgendamento.CANCELADO);
 
-        assertEquals("CANCELADO", agendamento.getStatus());
+        assertEquals(StatusAgendamento.CANCELADO, agendamento.getStatus());
     }
 
     @Test
@@ -63,9 +64,9 @@ class AgendamentoTest {
     @DisplayName("devePermitirCriarComStatusCancelado")
     void devePermitirCriarComStatusCancelado() {
         var agendamento = Instancio.of(Agendamento.class)
-                .set(field(Agendamento.class, "status"), "CANCELADO")
+                .set(field(Agendamento.class, "status"), StatusAgendamento.CANCELADO)
                 .create();
 
-        assertEquals("CANCELADO", agendamento.getStatus());
+        assertEquals(StatusAgendamento.CANCELADO, agendamento.getStatus());
     }
 }

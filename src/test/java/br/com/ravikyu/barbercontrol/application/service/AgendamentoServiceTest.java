@@ -1,10 +1,12 @@
 package br.com.ravikyu.barbercontrol.application.service;
 
-import br.com.ravikyu.barbercontrol.application.dto.CriarAgendamentoRequest;
+import br.com.ravikyu.barbercontrol.application.agendamento.dto.CriarAgendamentoRequest;
+import br.com.ravikyu.barbercontrol.application.agendamento.service.AgendamentoService;
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
+import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusAgendamento;
 import br.com.ravikyu.barbercontrol.domain.repository.AgendamentoRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
@@ -72,7 +74,7 @@ class AgendamentoServiceTest {
                 .set(field(Agendamento.class, "servicoId"), servicoId)
                 .set(field(Agendamento.class, "dataHoraInicio"), DATA_HORA)
                 .set(field(Agendamento.class, "dataHoraFim"), DATA_HORA.plusMinutes(30))
-                .set(field(Agendamento.class, "status"), "AGENDADO")
+                .set(field(Agendamento.class, "status"), StatusAgendamento.AGENDADO)
                 .create();
     }
 
@@ -86,7 +88,7 @@ class AgendamentoServiceTest {
         var agendamento = agendamentoSalvo(agendamentoId, cliente.getId(), barbeiro.getId(), servico.getId());
 
         var request = new CriarAgendamentoRequest(
-                cliente.getId(), barbeiro.getId(), servico.getId(), DATA_HORA, null, null);
+                cliente.getId(), barbeiro.getId(), servico.getId(), DATA_HORA);
 
         when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
         when(repository.salvar(any())).thenReturn(agendamento);
@@ -115,7 +117,7 @@ class AgendamentoServiceTest {
         var agendamento = agendamentoSalvo(agendamentoId, cliente.getId(), barbeiro.getId(), servico.getId());
 
         var request = new CriarAgendamentoRequest(
-                cliente.getId(), barbeiro.getId(), servico.getId(), DATA_HORA, null, null);
+                cliente.getId(), barbeiro.getId(), servico.getId(), DATA_HORA);
 
         when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
         when(repository.salvar(any())).thenReturn(agendamento);
@@ -128,7 +130,7 @@ class AgendamentoServiceTest {
 
         verify(repository).salvar(argThat(a ->
                 DATA_HORA.plusMinutes(45).equals(a.getDataHoraFim()) &&
-                        "AGENDADO".equals(a.getStatus())
+                        StatusAgendamento.AGENDADO.equals(a.getStatus())
         ));
     }
 
@@ -137,7 +139,7 @@ class AgendamentoServiceTest {
     void deveLancarExcecaoAoCriarAgendamentoComServicoNaoEncontrado() {
         var servicoId = UUID.randomUUID();
         var request = new CriarAgendamentoRequest(
-                UUID.randomUUID(), UUID.randomUUID(), servicoId, DATA_HORA, null, null);
+                UUID.randomUUID(), UUID.randomUUID(), servicoId, DATA_HORA);
 
         when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.empty());
 

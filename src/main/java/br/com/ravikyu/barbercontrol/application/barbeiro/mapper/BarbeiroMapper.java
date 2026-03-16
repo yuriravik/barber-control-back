@@ -1,7 +1,7 @@
-package br.com.ravikyu.barbercontrol.application.mapper;
+package br.com.ravikyu.barbercontrol.application.barbeiro.mapper;
 
-import br.com.ravikyu.barbercontrol.application.dto.barbeiro.BarbeiroResponse;
-import br.com.ravikyu.barbercontrol.application.dto.barbeiro.CriarBarbeiroRequest;
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.BarbeiroResponse;
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.CriarBarbeiroRequest;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 
 public class BarbeiroMapper {
@@ -14,7 +14,7 @@ public class BarbeiroMapper {
                 request.nome(),
                 request.especialidade(),
                 request.percentualComissao(),
-                request.ativo()
+                true
         );
     }
 

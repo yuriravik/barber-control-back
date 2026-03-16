@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.domain.model;
 
+import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusAgendamento;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +17,7 @@ public class Agendamento {
     private UUID servicoId;
     private LocalDateTime dataHoraInicio;
     private LocalDateTime dataHoraFim;
-    private String status;
+    private StatusAgendamento status;
 
     public Agendamento(UUID id,
                        UUID clienteId,
@@ -24,7 +25,7 @@ public class Agendamento {
                        UUID servicoId,
                        LocalDateTime dataHoraInicio,
                        LocalDateTime dataHoraFim,
-                       String status) {
+                       StatusAgendamento status) {
         this.id = id;
         this.clienteId = clienteId;
         this.barbeiroId = barbeiroId;
@@ -35,6 +36,4 @@ public class Agendamento {
     }
 
     public Agendamento() {}
-
-    // getters e setters
 }

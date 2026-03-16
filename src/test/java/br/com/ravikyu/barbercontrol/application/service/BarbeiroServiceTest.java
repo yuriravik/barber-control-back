@@ -1,6 +1,7 @@
 package br.com.ravikyu.barbercontrol.application.service;
 
-import br.com.ravikyu.barbercontrol.application.dto.barbeiro.CriarBarbeiroRequest;
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.CriarBarbeiroRequest;
+import br.com.ravikyu.barbercontrol.application.barbeiro.service.BarbeiroService;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
@@ -42,7 +43,7 @@ class BarbeiroServiceTest {
     void deveCriarBarbeiroComSucesso() {
         var salvo = barbeiroValido();
         var dto = new CriarBarbeiroRequest(
-                salvo.getNome(), salvo.getEspecialidade(), salvo.getPercentualComissao(), salvo.isAtivo());
+                salvo.getNome(), salvo.getEspecialidade(), salvo.getPercentualComissao());
 
         when(repository.salvar(any())).thenReturn(salvo);
 

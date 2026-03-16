@@ -1,6 +1,7 @@
 package br.com.ravikyu.barbercontrol.infrastructure.persistence.repository;
 
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
+import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusAgendamento;
 import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.AgendamentoEntity;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +38,7 @@ class AgendamentoRepositoryImplTest {
     void deveSalvarAgendamentoComSucesso() {
         var entity = entidadeValida("AGENDADO");
         var agendamento = Instancio.of(Agendamento.class)
-                .set(field(Agendamento.class, "status"), "AGENDADO")
+                .set(field(Agendamento.class, "status"), StatusAgendamento.AGENDADO)
                 .create();
 
         when(jpaRepository.save(any())).thenReturn(entity);
@@ -46,7 +47,7 @@ class AgendamentoRepositoryImplTest {
 
         assertNotNull(result);
         assertEquals(entity.getId(), result.getId());
-        assertEquals(entity.getStatus(), result.getStatus());
+        assertEquals(StatusAgendamento.valueOf(entity.getStatus()), result.getStatus());
         verify(jpaRepository, times(1)).save(any());
     }
 
@@ -61,7 +62,7 @@ class AgendamentoRepositoryImplTest {
 
         assertTrue(result.isPresent());
         assertEquals(entity.getId(), result.get().getId());
-        assertEquals("AGENDADO", result.get().getStatus());
+        assertEquals(StatusAgendamento.AGENDADO, result.get().getStatus());
         verify(jpaRepository, times(1)).findById(entity.getId());
     }
 
@@ -91,8 +92,8 @@ class AgendamentoRepositoryImplTest {
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertEquals("AGENDADO", result.get(0).getStatus());
-        assertEquals("CANCELADO", result.get(1).getStatus());
+        assertEquals(StatusAgendamento.AGENDADO, result.get(0).getStatus());
+        assertEquals(StatusAgendamento.CANCELADO, result.get(1).getStatus());
         verify(jpaRepository, times(1)).findAll();
     }
 

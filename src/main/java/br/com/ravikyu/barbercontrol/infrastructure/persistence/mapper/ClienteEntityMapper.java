@@ -13,15 +13,16 @@ public class ClienteEntityMapper {
                 cliente.getId(),
                 cliente.getNome(),
                 cliente.getTelefone(),
-                cliente.getEmail());
+                cliente.getEmail()
+        );
     }
 
-    public static ClienteResponse toDomain(ClienteEntity cliente) {
+    public static ClienteResponse toDomain(ClienteEntity entity) {
         return new ClienteResponse(
-                cliente.getId(),
-                cliente.getNome(),
-                cliente.getEmail(),
-                cliente.getTelefone()
+                entity.getId(),
+                entity.getNome(),
+                entity.getEmail(),
+                entity.getTelefone()
         );
     }
 }

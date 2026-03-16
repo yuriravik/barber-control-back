@@ -1,7 +1,7 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
-import br.com.ravikyu.barbercontrol.application.dto.AgendamentoResponse;
-import br.com.ravikyu.barbercontrol.application.service.AgendamentoService;
+import br.com.ravikyu.barbercontrol.application.agendamento.dto.AgendamentoResponse;
+import br.com.ravikyu.barbercontrol.application.agendamento.service.AgendamentoService;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
@@ -60,7 +60,7 @@ class AgendamentoControllerTest {
                                     "dataHora": "%s"
                                 }
                                 """, clienteId, barbeiroId, servicoId, dataHora)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(response.id().toString()))
                 .andExpect(jsonPath("$.status").value("AGENDADO"));
 
@@ -120,7 +120,7 @@ class AgendamentoControllerTest {
         doNothing().when(service).deletar(id);
 
         mockMvc.perform(delete("/agendamentos/{id}", id))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(service, times(1)).deletar(id);
     }

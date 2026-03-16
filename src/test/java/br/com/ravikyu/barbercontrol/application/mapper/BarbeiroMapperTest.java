@@ -1,6 +1,7 @@
 package br.com.ravikyu.barbercontrol.application.mapper;
 
-import br.com.ravikyu.barbercontrol.application.dto.barbeiro.CriarBarbeiroRequest;
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.CriarBarbeiroRequest;
+import br.com.ravikyu.barbercontrol.application.barbeiro.mapper.BarbeiroMapper;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -32,22 +33,21 @@ class BarbeiroMapperTest {
         assertEquals(request.nome(), barbeiro.getNome());
         assertEquals(request.especialidade(), barbeiro.getEspecialidade());
         assertEquals(request.percentualComissao(), barbeiro.getPercentualComissao());
-        assertEquals(request.ativo(), barbeiro.isAtivo());
+        assertTrue(barbeiro.isAtivo());
     }
 
     @Test
-    @DisplayName("deveMapearRequestParaDomainInativo")
-    void deveMapearRequestParaDomainInativo() {
+    @DisplayName("deveMapearRequestParaDomainSempreAtivo")
+    void deveMapearRequestParaDomainSempreAtivo() {
         var request = Instancio.of(CriarBarbeiroRequest.class)
                 .generate(field(CriarBarbeiroRequest.class, "nome"), gen -> gen.string().minLength(1))
                 .generate(field(CriarBarbeiroRequest.class, "percentualComissao"),
                         gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
-                .set(field(CriarBarbeiroRequest.class, "ativo"), false)
                 .create();
 
         var barbeiro = BarbeiroMapper.toDomain(request);
 
-        assertFalse(barbeiro.isAtivo());
+        assertTrue(barbeiro.isAtivo());
     }
 
     @Test

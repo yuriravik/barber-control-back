@@ -1,6 +1,7 @@
 package br.com.ravikyu.barbercontrol.infrastructure.persistence.repository;
 
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
+import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusAgendamento;
 import br.com.ravikyu.barbercontrol.domain.repository.AgendamentoRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.AgendamentoEntity;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
         entity.setServicoId(agendamento.getServicoId());
         entity.setDataHoraInicio(agendamento.getDataHoraInicio());
         entity.setDataHoraFim(agendamento.getDataHoraFim());
-        entity.setStatus(agendamento.getStatus());
+        entity.setStatus(agendamento.getStatus().name());
 
         AgendamentoEntity salvo = jpaRepository.save(entity);
 
@@ -36,7 +37,7 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
                 salvo.getServicoId(),
                 salvo.getDataHoraInicio(),
                 salvo.getDataHoraFim(),
-                salvo.getStatus()
+                StatusAgendamento.valueOf(salvo.getStatus())
         );
     }
 
@@ -50,7 +51,7 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
                         e.getServicoId(),
                         e.getDataHoraInicio(),
                         e.getDataHoraFim(),
-                        e.getStatus()
+                        StatusAgendamento.valueOf(e.getStatus())
                 ));
     }
 
@@ -65,7 +66,7 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
                         e.getServicoId(),
                         e.getDataHoraInicio(),
                         e.getDataHoraFim(),
-                        e.getStatus()
+                        StatusAgendamento.valueOf(e.getStatus())
                 ))
                 .toList();
     }

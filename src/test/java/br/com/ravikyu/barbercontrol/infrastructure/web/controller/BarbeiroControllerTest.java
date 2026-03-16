@@ -1,7 +1,7 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
-import br.com.ravikyu.barbercontrol.application.dto.barbeiro.BarbeiroResponse;
-import br.com.ravikyu.barbercontrol.application.service.BarbeiroService;
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.BarbeiroResponse;
+import br.com.ravikyu.barbercontrol.application.barbeiro.service.BarbeiroService;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
@@ -56,7 +56,7 @@ class BarbeiroControllerTest {
                                     "ativo": true
                                 }
                                 """))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(response.id().toString()))
                 .andExpect(jsonPath("$.nome").value(response.nome()));
 
@@ -89,7 +89,7 @@ class BarbeiroControllerTest {
         doNothing().when(service).desativar(id);
 
         mockMvc.perform(patch("/barbeiros/{id}/desativar", id))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(service, times(1)).desativar(id);
     }
