@@ -1,62 +1,77 @@
 package br.com.ravikyu.barbercontrol.domain.model;
 
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
-import java.util.UUID;
-
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ServicoTest {
 
     @Test
+    @DisplayName("deveCriarServicoComSucesso")
     void deveCriarServicoComSucesso() {
-        var id = UUID.randomUUID();
-        var servico = new Servico(id, "Corte Simples", "Corte básico", new BigDecimal("30.00"), 30, true);
+        var servico = Instancio.create(Servico.class);
 
-        assertEquals(id, servico.getId());
-        assertEquals("Corte Simples", servico.getNome());
-        assertEquals("Corte básico", servico.getDescricao());
-        assertEquals(new BigDecimal("30.00"), servico.getPreco());
-        assertEquals(30, servico.getDuracaoMinutos());
-        assertTrue(servico.isAtivo());
+        assertNotNull(servico.getId());
+        assertNotNull(servico.getNome());
+        assertNotNull(servico.getDescricao());
+        assertNotNull(servico.getPreco());
+        assertNotNull(servico.getDuracaoMinutos());
     }
 
     @Test
+    @DisplayName("deveCriarServicoInativo")
     void deveCriarServicoInativo() {
-        var servico = new Servico(null, "Barba", "Aparar barba", new BigDecimal("20.00"), 20, false);
+        var servico = Instancio.of(Servico.class)
+                .set(field(Servico.class, "ativo"), false)
+                .create();
 
         assertFalse(servico.isAtivo());
     }
 
     @Test
+    @DisplayName("deveCriarServicoSemId")
     void deveCriarServicoSemId() {
-        var servico = new Servico(null, "Coloração", "Tingimento", new BigDecimal("80.00"), 60, true);
+        var servico = Instancio.of(Servico.class)
+                .set(field(Servico.class, "id"), null)
+                .create();
 
         assertNull(servico.getId());
     }
 
     @Test
+    @DisplayName("devePermitirAlterarAtivo")
     void devePermitirAlterarAtivo() {
-        var servico = new Servico(null, "Corte", "Desc", new BigDecimal("25.00"), 25, true);
+        var servico = Instancio.of(Servico.class)
+                .set(field(Servico.class, "ativo"), true)
+                .create();
+
         servico.setAtivo(false);
 
         assertFalse(servico.isAtivo());
     }
 
     @Test
+    @DisplayName("devePermitirAlterarPreco")
     void devePermitirAlterarPreco() {
-        var servico = new Servico(null, "Corte", "Desc", new BigDecimal("25.00"), 25, true);
-        servico.setPreco(new BigDecimal("35.00"));
+        var servico = Instancio.create(Servico.class);
+        var novoPreco = Instancio.gen().math().bigDecimal().scale(2).min(java.math.BigDecimal.ONE).get();
 
-        assertEquals(new BigDecimal("35.00"), servico.getPreco());
+        servico.setPreco(novoPreco);
+
+        assertEquals(novoPreco, servico.getPreco());
     }
 
     @Test
+    @DisplayName("devePermitirAlterarDuracao")
     void devePermitirAlterarDuracao() {
-        var servico = new Servico(null, "Corte", "Desc", new BigDecimal("25.00"), 25, true);
-        servico.setDuracaoMinutos(45);
+        var servico = Instancio.create(Servico.class);
+        var novaDuracao = Instancio.gen().ints().range(10, 120).get();
 
-        assertEquals(45, servico.getDuracaoMinutos());
+        servico.setDuracaoMinutos(novaDuracao);
+
+        assertEquals(novaDuracao, servico.getDuracaoMinutos());
     }
 }

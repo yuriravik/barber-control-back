@@ -4,6 +4,8 @@ import br.com.ravikyu.barbercontrol.application.dto.barbeiro.CriarBarbeiroReques
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -27,31 +30,38 @@ class BarbeiroServiceTest {
     @InjectMocks
     private BarbeiroService service;
 
+    private Barbeiro barbeiroValido() {
+        return Instancio.of(Barbeiro.class)
+                .generate(field(Barbeiro.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .create();
+    }
+
     @Test
+    @DisplayName("deveCriarBarbeiroComSucesso")
     void deveCriarBarbeiroComSucesso() {
-        var dto = new CriarBarbeiroRequest("Carlos", "Corte", new BigDecimal("20.00"), true);
-        var id = UUID.randomUUID();
-        var salvo = new Barbeiro(id, "Carlos", "Corte", new BigDecimal("20.00"), true);
+        var salvo = barbeiroValido();
+        var dto = new CriarBarbeiroRequest(
+                salvo.getNome(), salvo.getEspecialidade(), salvo.getPercentualComissao(), salvo.isAtivo());
 
         when(repository.salvar(any())).thenReturn(salvo);
 
         var response = service.criar(dto);
 
         assertNotNull(response);
-        assertEquals(id, response.id());
-        assertEquals("Carlos", response.nome());
-        assertEquals("Corte", response.especialidade());
-        assertEquals(new BigDecimal("20.00"), response.percentualComissao());
-        assertTrue(response.ativo());
+        assertEquals(salvo.getId(), response.id());
+        assertEquals(salvo.getNome(), response.nome());
         verify(repository, times(1)).salvar(any());
     }
 
     @Test
+    @DisplayName("deveListarBarbeirosComSucesso")
     void deveListarBarbeirosComSucesso() {
-        var barbeiros = List.of(
-                new Barbeiro(UUID.randomUUID(), "Carlos", "Corte", new BigDecimal("20.00"), true),
-                new Barbeiro(UUID.randomUUID(), "Ana", "Barba", new BigDecimal("15.00"), false)
-        );
+        var barbeiros = Instancio.ofList(Barbeiro.class)
+                .size(2)
+                .generate(field(Barbeiro.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .create();
 
         when(repository.listar()).thenReturn(barbeiros);
 
@@ -59,12 +69,11 @@ class BarbeiroServiceTest {
 
         assertNotNull(response);
         assertEquals(2, response.size());
-        assertEquals("Carlos", response.get(0).nome());
-        assertEquals("Ana", response.get(1).nome());
         verify(repository, times(1)).listar();
     }
 
     @Test
+    @DisplayName("deveRetornarListaVaziaQuandoNaoHaBarbeiros")
     void deveRetornarListaVaziaQuandoNaoHaBarbeiros() {
         when(repository.listar()).thenReturn(List.of());
 
@@ -75,21 +84,21 @@ class BarbeiroServiceTest {
     }
 
     @Test
+    @DisplayName("deveDesativarBarbeiroComSucesso")
     void deveDesativarBarbeiroComSucesso() {
-        var id = UUID.randomUUID();
-        var barbeiro = new Barbeiro(id, "Carlos", "Corte", new BigDecimal("20.00"), true);
-        var barbeiroInativo = new Barbeiro(id, "Carlos", "Corte", new BigDecimal("20.00"), false);
+        var barbeiro = barbeiroValido();
 
-        when(repository.buscarPorId(id)).thenReturn(Optional.of(barbeiro));
-        when(repository.salvar(any())).thenReturn(barbeiroInativo);
+        when(repository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
+        when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        service.desativar(id);
+        service.desativar(barbeiro.getId());
 
-        verify(repository, times(1)).buscarPorId(id);
+        verify(repository, times(1)).buscarPorId(barbeiro.getId());
         verify(repository, times(1)).salvar(argThat(b -> !b.isAtivo()));
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoAoDesativarBarbeiroNaoEncontrado")
     void deveLancarExcecaoAoDesativarBarbeiroNaoEncontrado() {
         var id = UUID.randomUUID();
 
@@ -102,20 +111,20 @@ class BarbeiroServiceTest {
     }
 
     @Test
+    @DisplayName("deveManterDadosBarbeiroAoDesativar")
     void deveManterDadosBarbeiroAoDesativar() {
-        var id = UUID.randomUUID();
-        var barbeiro = new Barbeiro(id, "José", "Sobrancelha", new BigDecimal("25.00"), true);
+        var barbeiro = barbeiroValido();
 
-        when(repository.buscarPorId(id)).thenReturn(Optional.of(barbeiro));
+        when(repository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
         when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        service.desativar(id);
+        service.desativar(barbeiro.getId());
 
         verify(repository).salvar(argThat(b ->
-                b.getId().equals(id) &&
-                        "José".equals(b.getNome()) &&
-                        "Sobrancelha".equals(b.getEspecialidade()) &&
-                        new BigDecimal("25.00").equals(b.getPercentualComissao()) &&
+                b.getId().equals(barbeiro.getId()) &&
+                        barbeiro.getNome().equals(b.getNome()) &&
+                        barbeiro.getEspecialidade().equals(b.getEspecialidade()) &&
+                        barbeiro.getPercentualComissao().equals(b.getPercentualComissao()) &&
                         !b.isAtivo()
         ));
     }

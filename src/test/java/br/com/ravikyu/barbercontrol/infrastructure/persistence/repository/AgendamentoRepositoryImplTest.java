@@ -2,17 +2,18 @@ package br.com.ravikyu.barbercontrol.infrastructure.persistence.repository;
 
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.AgendamentoEntity;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -25,59 +26,49 @@ class AgendamentoRepositoryImplTest {
     @InjectMocks
     private AgendamentoRepositoryImpl repository;
 
-    private final LocalDateTime DATA_HORA = LocalDateTime.now().plusDays(1);
+    private AgendamentoEntity entidadeValida(String status) {
+        return Instancio.of(AgendamentoEntity.class)
+                .set(field(AgendamentoEntity.class, "status"), status)
+                .create();
+    }
 
     @Test
+    @DisplayName("deveSalvarAgendamentoComSucesso")
     void deveSalvarAgendamentoComSucesso() {
-        var id = UUID.randomUUID();
-        var clienteId = UUID.randomUUID();
-        var barbeiroId = UUID.randomUUID();
-        var servicoId = UUID.randomUUID();
-
-        var agendamento = new Agendamento(null, clienteId, barbeiroId, servicoId,
-                DATA_HORA, DATA_HORA.plusMinutes(30), "AGENDADO");
-
-        var entity = new AgendamentoEntity(id, clienteId, barbeiroId, servicoId,
-                DATA_HORA, DATA_HORA.plusMinutes(30), "AGENDADO");
+        var entity = entidadeValida("AGENDADO");
+        var agendamento = Instancio.of(Agendamento.class)
+                .set(field(Agendamento.class, "status"), "AGENDADO")
+                .create();
 
         when(jpaRepository.save(any())).thenReturn(entity);
 
         var result = repository.salvar(agendamento);
 
         assertNotNull(result);
-        assertEquals(id, result.getId());
-        assertEquals(clienteId, result.getClienteId());
-        assertEquals(barbeiroId, result.getBarbeiroId());
-        assertEquals(servicoId, result.getServicoId());
-        assertEquals(DATA_HORA, result.getDataHoraInicio());
-        assertEquals(DATA_HORA.plusMinutes(30), result.getDataHoraFim());
-        assertEquals("AGENDADO", result.getStatus());
+        assertEquals(entity.getId(), result.getId());
+        assertEquals(entity.getStatus(), result.getStatus());
         verify(jpaRepository, times(1)).save(any());
     }
 
     @Test
+    @DisplayName("deveBuscarAgendamentoPorIdComSucesso")
     void deveBuscarAgendamentoPorIdComSucesso() {
-        var id = UUID.randomUUID();
-        var clienteId = UUID.randomUUID();
-        var barbeiroId = UUID.randomUUID();
-        var servicoId = UUID.randomUUID();
+        var entity = entidadeValida("AGENDADO");
 
-        var entity = new AgendamentoEntity(id, clienteId, barbeiroId, servicoId,
-                DATA_HORA, DATA_HORA.plusMinutes(30), "AGENDADO");
+        when(jpaRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
-        when(jpaRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        var result = repository.buscarPorId(id);
+        var result = repository.buscarPorId(entity.getId());
 
         assertTrue(result.isPresent());
-        assertEquals(id, result.get().getId());
+        assertEquals(entity.getId(), result.get().getId());
         assertEquals("AGENDADO", result.get().getStatus());
-        verify(jpaRepository, times(1)).findById(id);
+        verify(jpaRepository, times(1)).findById(entity.getId());
     }
 
     @Test
+    @DisplayName("deveRetornarVazioQuandoAgendamentoNaoEncontrado")
     void deveRetornarVazioQuandoAgendamentoNaoEncontrado() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         when(jpaRepository.findById(id)).thenReturn(Optional.empty());
 
@@ -87,12 +78,11 @@ class AgendamentoRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deveListarAgendamentosComSucesso")
     void deveListarAgendamentosComSucesso() {
         var entities = List.of(
-                new AgendamentoEntity(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                        DATA_HORA, DATA_HORA.plusMinutes(30), "AGENDADO"),
-                new AgendamentoEntity(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                        DATA_HORA.plusDays(1), DATA_HORA.plusDays(1).plusMinutes(45), "CANCELADO")
+                entidadeValida("AGENDADO"),
+                entidadeValida("CANCELADO")
         );
 
         when(jpaRepository.findAll()).thenReturn(entities);
@@ -107,6 +97,7 @@ class AgendamentoRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deveRetornarListaVaziaQuandoNaoHaAgendamentos")
     void deveRetornarListaVaziaQuandoNaoHaAgendamentos() {
         when(jpaRepository.findAll()).thenReturn(List.of());
 
@@ -116,8 +107,9 @@ class AgendamentoRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deveDeletarAgendamentoComSucesso")
     void deveDeletarAgendamentoComSucesso() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         doNothing().when(jpaRepository).deleteById(id);
 

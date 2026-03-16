@@ -1,41 +1,59 @@
 package br.com.ravikyu.barbercontrol.domain.model;
 
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BarbeiroTest {
 
-    @Test
-    void deveCriarBarbeiroComSucesso() {
-        var id = UUID.randomUUID();
-        var barbeiro = new Barbeiro(id, "Carlos", "Corte", new BigDecimal("20.00"), true);
+    private Barbeiro barbeiroValido() {
+        return Instancio.of(Barbeiro.class)
+                .generate(field(Barbeiro.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .create();
+    }
 
-        assertEquals(id, barbeiro.getId());
-        assertEquals("Carlos", barbeiro.getNome());
-        assertEquals("Corte", barbeiro.getEspecialidade());
-        assertEquals(new BigDecimal("20.00"), barbeiro.getPercentualComissao());
+    @Test
+    @DisplayName("deveCriarBarbeiroComSucesso")
+    void deveCriarBarbeiroComSucesso() {
+        var nome = Instancio.create(String.class);
+        var especialidade = Instancio.create(String.class);
+        var percentual = new BigDecimal("20.00");
+
+        var barbeiro = new Barbeiro(null, nome, especialidade, percentual, true);
+
+        assertNull(barbeiro.getId());
+        assertEquals(nome, barbeiro.getNome());
+        assertEquals(especialidade, barbeiro.getEspecialidade());
+        assertEquals(percentual, barbeiro.getPercentualComissao());
         assertTrue(barbeiro.isAtivo());
     }
 
     @Test
+    @DisplayName("deveCriarBarbeiroComComissaoZero")
     void deveCriarBarbeiroComComissaoZero() {
-        var barbeiro = new Barbeiro(null, "Ana", "Barba", BigDecimal.ZERO, true);
+        var barbeiro = new Barbeiro(null, Instancio.create(String.class),
+                Instancio.create(String.class), BigDecimal.ZERO, true);
 
         assertEquals(BigDecimal.ZERO, barbeiro.getPercentualComissao());
     }
 
     @Test
+    @DisplayName("deveCriarBarbeiroComComissaoCem")
     void deveCriarBarbeiroComComissaoCem() {
-        var barbeiro = new Barbeiro(null, "Bob", "Sobrancelha", new BigDecimal("100"), true);
+        var barbeiro = new Barbeiro(null, Instancio.create(String.class),
+                Instancio.create(String.class), new BigDecimal("100"), true);
 
         assertEquals(new BigDecimal("100"), barbeiro.getPercentualComissao());
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoQuandoComissaoNegativa")
     void deveLancarExcecaoQuandoComissaoNegativa() {
         var ex = assertThrows(IllegalArgumentException.class,
                 () -> new Barbeiro(null, "Carlos", "Corte", new BigDecimal("-1"), true));
@@ -44,6 +62,7 @@ class BarbeiroTest {
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoQuandoComissaoAcimaDeCem")
     void deveLancarExcecaoQuandoComissaoAcimaDeCem() {
         var ex = assertThrows(IllegalArgumentException.class,
                 () -> new Barbeiro(null, "Carlos", "Corte", new BigDecimal("100.01"), true));
@@ -52,6 +71,7 @@ class BarbeiroTest {
     }
 
     @Test
+    @DisplayName("deveCalcularComissaoCorretamente")
     void deveCalcularComissaoCorretamente() {
         var barbeiro = new Barbeiro(null, "Carlos", "Corte", new BigDecimal("20"), true);
         var comissao = barbeiro.calcularComissao(new BigDecimal("100"));
@@ -60,6 +80,7 @@ class BarbeiroTest {
     }
 
     @Test
+    @DisplayName("deveCalcularComissaoComValorFracionado")
     void deveCalcularComissaoComValorFracionado() {
         var barbeiro = new Barbeiro(null, "Carlos", "Corte", new BigDecimal("10"), true);
         var comissao = barbeiro.calcularComissao(new BigDecimal("150"));
@@ -68,15 +89,18 @@ class BarbeiroTest {
     }
 
     @Test
+    @DisplayName("deveCriarBarbeiroInativo")
     void deveCriarBarbeiroInativo() {
-        var barbeiro = new Barbeiro(null, "José", "Corte", new BigDecimal("15"), false);
+        var barbeiro = barbeiroValido();
+        barbeiro.setAtivo(false);
 
         assertFalse(barbeiro.isAtivo());
     }
 
     @Test
+    @DisplayName("devePermitirAlterarAtivo")
     void devePermitirAlterarAtivo() {
-        var barbeiro = new Barbeiro(null, "José", "Corte", new BigDecimal("15"), true);
+        var barbeiro = barbeiroValido();
         barbeiro.setAtivo(false);
 
         assertFalse(barbeiro.isAtivo());

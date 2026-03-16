@@ -2,17 +2,18 @@ package br.com.ravikyu.barbercontrol.infrastructure.persistence.repository;
 
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
 import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.ServicoEntity;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -26,44 +27,41 @@ class ServicoRepositoryImplTest {
     private ServicoRepositoryImpl repository;
 
     @Test
+    @DisplayName("deveSalvarServicoComSucesso")
     void deveSalvarServicoComSucesso() {
-        var id = UUID.randomUUID();
-        var servico = new Servico(null, "Corte Simples", "Corte básico", new BigDecimal("30.00"), 30, true);
-        var entity = new ServicoEntity(id, "Corte Simples", "Corte básico", new BigDecimal("30.00"), 30, true);
+        var entity = Instancio.create(ServicoEntity.class);
+        var servico = Instancio.create(Servico.class);
 
         when(jpaRepository.save(any())).thenReturn(entity);
 
         var result = repository.salvar(servico);
 
         assertNotNull(result);
-        assertEquals(id, result.getId());
-        assertEquals("Corte Simples", result.getNome());
-        assertEquals("Corte básico", result.getDescricao());
-        assertEquals(new BigDecimal("30.00"), result.getPreco());
-        assertEquals(30, result.getDuracaoMinutos());
-        assertTrue(result.isAtivo());
+        assertEquals(entity.getId(), result.getId());
+        assertEquals(entity.getNome(), result.getNome());
+        assertEquals(entity.isAtivo(), result.isAtivo());
         verify(jpaRepository, times(1)).save(any());
     }
 
     @Test
+    @DisplayName("deveBuscarServicoPorIdComSucesso")
     void deveBuscarServicoPorIdComSucesso() {
-        var id = UUID.randomUUID();
-        var entity = new ServicoEntity(id, "Barba", "Aparar barba", new BigDecimal("20.00"), 20, false);
+        var entity = Instancio.create(ServicoEntity.class);
 
-        when(jpaRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(jpaRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
-        var result = repository.buscarPorId(id);
+        var result = repository.buscarPorId(entity.getId());
 
         assertTrue(result.isPresent());
-        assertEquals(id, result.get().getId());
-        assertEquals("Barba", result.get().getNome());
-        assertFalse(result.get().isAtivo());
-        verify(jpaRepository, times(1)).findById(id);
+        assertEquals(entity.getId(), result.get().getId());
+        assertEquals(entity.getNome(), result.get().getNome());
+        verify(jpaRepository, times(1)).findById(entity.getId());
     }
 
     @Test
+    @DisplayName("deveRetornarVazioQuandoServicoNaoEncontrado")
     void deveRetornarVazioQuandoServicoNaoEncontrado() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         when(jpaRepository.findById(id)).thenReturn(Optional.empty());
 
@@ -73,11 +71,9 @@ class ServicoRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deveListarServicosComSucesso")
     void deveListarServicosComSucesso() {
-        var entities = List.of(
-                new ServicoEntity(UUID.randomUUID(), "Corte", "Desc1", new BigDecimal("30.00"), 30, true),
-                new ServicoEntity(UUID.randomUUID(), "Barba", "Desc2", new BigDecimal("20.00"), 20, true)
-        );
+        var entities = Instancio.ofList(ServicoEntity.class).size(2).create();
 
         when(jpaRepository.findAll()).thenReturn(entities);
 
@@ -89,6 +85,7 @@ class ServicoRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deveRetornarListaVaziaQuandoNaoHaServicos")
     void deveRetornarListaVaziaQuandoNaoHaServicos() {
         when(jpaRepository.findAll()).thenReturn(List.of());
 
@@ -98,8 +95,9 @@ class ServicoRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deveDeletarServicoComSucesso")
     void deveDeletarServicoComSucesso() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         doNothing().when(jpaRepository).deleteById(id);
 

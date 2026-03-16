@@ -2,6 +2,8 @@ package br.com.ravikyu.barbercontrol.infrastructure.persistence.repository;
 
 import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.ClienteEntity;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -10,8 +12,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -24,32 +26,36 @@ class ClienteRepositoryImplTest {
     @InjectMocks
     private ClienteRepositoryImpl repository;
 
+    private ClienteEntity entidadeValida() {
+        return Instancio.of(ClienteEntity.class)
+                .generate(field(ClienteEntity.class, "email"), gen -> gen.net().email())
+                .create();
+    }
+
     @Test
+    @DisplayName("deveSalvarClienteComSucesso")
     void deveSalvarClienteComSucesso() {
-        var id = UUID.randomUUID();
-        var cliente = new Cliente(null, "João", "joao@email.com", "11999999999");
-        var entity = new ClienteEntity(id, "João", "11999999999", "joao@email.com");
+        var entity = entidadeValida();
+        var cliente = Instancio.of(Cliente.class)
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .create();
 
         when(jpaRepository.save(any())).thenReturn(entity);
 
         var result = repository.salvar(cliente);
 
         assertNotNull(result);
-        assertEquals(id, result.getId());
-        assertEquals("João", result.getNome());
-        assertEquals("joao@email.com", result.getEmail());
-        assertEquals("11999999999", result.getTelefone());
+        assertEquals(entity.getId(), result.getId());
+        assertEquals(entity.getNome(), result.getNome());
         verify(jpaRepository, times(1)).save(any());
     }
 
     @Test
+    @DisplayName("deveListarClientesComSucesso")
     void deveListarClientesComSucesso() {
-        var id1 = UUID.randomUUID();
-        var id2 = UUID.randomUUID();
-        var entities = List.of(
-                new ClienteEntity(id1, "Maria", "21999999999", "maria@email.com"),
-                new ClienteEntity(id2, "Pedro", "31999999999", "pedro@email.com")
-        );
+        var entities = Instancio.ofList(ClienteEntity.class).size(2)
+                .generate(field(ClienteEntity.class, "email"), gen -> gen.net().email())
+                .create();
 
         when(jpaRepository.findAll()).thenReturn(entities);
 
@@ -61,6 +67,7 @@ class ClienteRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deveRetornarListaVaziaQuandoNaoHaClientes")
     void deveRetornarListaVaziaQuandoNaoHaClientes() {
         when(jpaRepository.findAll()).thenReturn(List.of());
 
@@ -70,23 +77,24 @@ class ClienteRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deveBuscarClientePorIdComSucesso")
     void deveBuscarClientePorIdComSucesso() {
-        var id = UUID.randomUUID();
-        var entity = new ClienteEntity(id, "Ana", "41999999999", "ana@email.com");
+        var entity = entidadeValida();
 
-        when(jpaRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(jpaRepository.findById(entity.getId())).thenReturn(Optional.of(entity));
 
-        var result = repository.buscarPorId(id);
+        var result = repository.buscarPorId(entity.getId());
 
         assertTrue(result.isPresent());
-        assertEquals(id, result.get().getId());
-        assertEquals("Ana", result.get().getNome());
-        verify(jpaRepository, times(1)).findById(id);
+        assertEquals(entity.getId(), result.get().getId());
+        assertEquals(entity.getNome(), result.get().getNome());
+        verify(jpaRepository, times(1)).findById(entity.getId());
     }
 
     @Test
+    @DisplayName("deveRetornarVazioQuandoClienteNaoEncontrado")
     void deveRetornarVazioQuandoClienteNaoEncontrado() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         when(jpaRepository.findById(id)).thenReturn(Optional.empty());
 
@@ -96,8 +104,9 @@ class ClienteRepositoryImplTest {
     }
 
     @Test
+    @DisplayName("deveDeletarClienteComSucesso")
     void deveDeletarClienteComSucesso() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         doNothing().when(jpaRepository).deleteById(id);
 

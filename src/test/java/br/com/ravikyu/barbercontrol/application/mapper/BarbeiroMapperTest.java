@@ -1,31 +1,49 @@
 package br.com.ravikyu.barbercontrol.application.mapper;
 
 import br.com.ravikyu.barbercontrol.application.dto.barbeiro.CriarBarbeiroRequest;
+import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BarbeiroMapperTest {
 
+    private CriarBarbeiroRequest requestValido() {
+        return Instancio.of(CriarBarbeiroRequest.class)
+                .generate(field(CriarBarbeiroRequest.class, "nome"), gen -> gen.string().minLength(1))
+                .generate(field(CriarBarbeiroRequest.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .create();
+    }
+
     @Test
+    @DisplayName("deveMapearRequestParaDomain")
     void deveMapearRequestParaDomain() {
-        var request = new CriarBarbeiroRequest("Carlos", "Corte", new BigDecimal("20.00"), true);
+        var request = requestValido();
 
         var barbeiro = BarbeiroMapper.toDomain(request);
 
         assertNull(barbeiro.getId());
-        assertEquals("Carlos", barbeiro.getNome());
-        assertEquals("Corte", barbeiro.getEspecialidade());
-        assertEquals(new BigDecimal("20.00"), barbeiro.getPercentualComissao());
-        assertTrue(barbeiro.isAtivo());
+        assertEquals(request.nome(), barbeiro.getNome());
+        assertEquals(request.especialidade(), barbeiro.getEspecialidade());
+        assertEquals(request.percentualComissao(), barbeiro.getPercentualComissao());
+        assertEquals(request.ativo(), barbeiro.isAtivo());
     }
 
     @Test
+    @DisplayName("deveMapearRequestParaDomainInativo")
     void deveMapearRequestParaDomainInativo() {
-        var request = new CriarBarbeiroRequest("Ana", "Barba", new BigDecimal("15.00"), false);
+        var request = Instancio.of(CriarBarbeiroRequest.class)
+                .generate(field(CriarBarbeiroRequest.class, "nome"), gen -> gen.string().minLength(1))
+                .generate(field(CriarBarbeiroRequest.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .set(field(CriarBarbeiroRequest.class, "ativo"), false)
+                .create();
 
         var barbeiro = BarbeiroMapper.toDomain(request);
 
@@ -33,25 +51,30 @@ class BarbeiroMapperTest {
     }
 
     @Test
+    @DisplayName("deveMapearDomainParaResponse")
     void deveMapearDomainParaResponse() {
-        var id = UUID.randomUUID();
-        var request = new CriarBarbeiroRequest("José", "Sobrancelha", new BigDecimal("25.00"), true);
-        var barbeiro = BarbeiroMapper.toDomain(request);
-        barbeiro.setId(id);
+        var barbeiro = Instancio.of(Barbeiro.class)
+                .generate(field(Barbeiro.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .create();
 
         var response = BarbeiroMapper.toResponse(barbeiro);
 
-        assertEquals(id, response.id());
-        assertEquals("José", response.nome());
-        assertEquals("Sobrancelha", response.especialidade());
-        assertEquals(new BigDecimal("25.00"), response.percentualComissao());
-        assertTrue(response.ativo());
+        assertEquals(barbeiro.getId(), response.id());
+        assertEquals(barbeiro.getNome(), response.nome());
+        assertEquals(barbeiro.getEspecialidade(), response.especialidade());
+        assertEquals(barbeiro.getPercentualComissao(), response.percentualComissao());
+        assertEquals(barbeiro.isAtivo(), response.ativo());
     }
 
     @Test
+    @DisplayName("deveMapearDomainParaResponseComAtivoPadrao")
     void deveMapearDomainParaResponseComAtivoPadrao() {
-        var request = new CriarBarbeiroRequest("Paulo", "Barba", new BigDecimal("10.00"), false);
-        var barbeiro = BarbeiroMapper.toDomain(request);
+        var barbeiro = Instancio.of(Barbeiro.class)
+                .generate(field(Barbeiro.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .set(field(Barbeiro.class, "ativo"), false)
+                .create();
 
         var response = BarbeiroMapper.toResponse(barbeiro);
 

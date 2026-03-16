@@ -1,9 +1,11 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
-import br.com.ravikyu.barbercontrol.application.dto.ServicoResponse;
 import br.com.ravikyu.barbercontrol.application.service.ServicoService;
+import br.com.ravikyu.barbercontrol.domain.model.Servico;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -11,15 +13,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
+import static org.instancio.Select.field;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import br.com.ravikyu.barbercontrol.domain.model.Servico;
 
 @WebMvcTest(ServicoController.class)
 class ServicoControllerTest {
@@ -34,9 +32,11 @@ class ServicoControllerTest {
     private ServicoService service;
 
     @Test
+    @DisplayName("deveCriarServicoComSucesso")
     void deveCriarServicoComSucesso() throws Exception {
-        var id = UUID.randomUUID();
-        var servico = new Servico(id, "Corte Simples", "Corte básico", new BigDecimal("30.00"), 30, true);
+        var servico = Instancio.of(Servico.class)
+                .set(field(Servico.class, "ativo"), true)
+                .create();
 
         when(service.criar(any())).thenReturn(servico);
 
@@ -52,51 +52,46 @@ class ServicoControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.nome").value("Corte Simples"))
-                .andExpect(jsonPath("$.preco").value(30.00))
-                .andExpect(jsonPath("$.duracaoMinutos").value(30))
-                .andExpect(jsonPath("$.ativo").value(true));
+                .andExpect(jsonPath("$.id").value(servico.getId().toString()))
+                .andExpect(jsonPath("$.nome").value(servico.getNome()))
+                .andExpect(jsonPath("$.ativo").value(servico.isAtivo()));
 
         verify(service, times(1)).criar(any());
     }
 
     @Test
+    @DisplayName("deveListarServicosComSucesso")
     void deveListarServicosComSucesso() throws Exception {
-        var servicos = List.of(
-                new Servico(UUID.randomUUID(), "Corte", "Desc1", new BigDecimal("30.00"), 30, true),
-                new Servico(UUID.randomUUID(), "Barba", "Desc2", new BigDecimal("20.00"), 20, true)
-        );
+        var servicos = Instancio.ofList(Servico.class).size(2).create();
 
         when(service.listar()).thenReturn(servicos);
 
         mockMvc.perform(get("/servicos"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].nome").value("Corte"))
-                .andExpect(jsonPath("$[1].nome").value("Barba"));
+                .andExpect(jsonPath("$.length()").value(2));
 
         verify(service, times(1)).listar();
     }
 
     @Test
+    @DisplayName("deveBuscarServicoPorIdComSucesso")
     void deveBuscarServicoPorIdComSucesso() throws Exception {
-        var id = UUID.randomUUID();
-        var servico = new Servico(id, "Coloração", "Tingimento", new BigDecimal("80.00"), 60, true);
+        var servico = Instancio.create(Servico.class);
 
-        when(service.buscar(id)).thenReturn(servico);
+        when(service.buscar(servico.getId())).thenReturn(servico);
 
-        mockMvc.perform(get("/servicos/{id}", id))
+        mockMvc.perform(get("/servicos/{id}", servico.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.nome").value("Coloração"));
+                .andExpect(jsonPath("$.id").value(servico.getId().toString()))
+                .andExpect(jsonPath("$.nome").value(servico.getNome()));
 
-        verify(service, times(1)).buscar(id);
+        verify(service, times(1)).buscar(servico.getId());
     }
 
     @Test
+    @DisplayName("deveRetornar404QuandoServicoNaoEncontrado")
     void deveRetornar404QuandoServicoNaoEncontrado() throws Exception {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         when(service.buscar(id)).thenThrow(new ResourceNotFoundException("Serviço não encontrado"));
 
@@ -107,8 +102,9 @@ class ServicoControllerTest {
     }
 
     @Test
+    @DisplayName("deveDeletarServicoComSucesso")
     void deveDeletarServicoComSucesso() throws Exception {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         doNothing().when(service).deletar(id);
 

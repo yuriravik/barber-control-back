@@ -1,6 +1,8 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.exception;
 
+import org.instancio.Instancio;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
@@ -22,8 +24,10 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("deveRetornar404ParaResourceNotFoundException")
     void deveRetornar404ParaResourceNotFoundException() {
-        var ex = new ResourceNotFoundException("Cliente não encontrado");
+        var mensagem = Instancio.create(String.class);
+        var ex = new ResourceNotFoundException(mensagem);
 
         var response = handler.handleNotFound(ex);
 
@@ -31,13 +35,15 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(404, response.getBody().status());
         assertEquals("Not Found", response.getBody().error());
-        assertEquals("Cliente não encontrado", response.getBody().message());
+        assertEquals(mensagem, response.getBody().message());
         assertNotNull(response.getBody().timestamp());
     }
 
     @Test
+    @DisplayName("deveRetornar422ParaBusinessException")
     void deveRetornar422ParaBusinessException() {
-        var ex = new BusinessException("Regra de negócio violada");
+        var mensagem = Instancio.create(String.class);
+        var ex = new BusinessException(mensagem);
 
         var response = handler.handleBusiness(ex);
 
@@ -45,12 +51,14 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(422, response.getBody().status());
         assertEquals("Business Error", response.getBody().error());
-        assertEquals("Regra de negócio violada", response.getBody().message());
+        assertEquals(mensagem, response.getBody().message());
     }
 
     @Test
+    @DisplayName("deveRetornar409ParaAgendamentoException")
     void deveRetornar409ParaAgendamentoException() {
-        var ex = new AgendamentoException("Conflito de horário");
+        var mensagem = Instancio.create(String.class);
+        var ex = new AgendamentoException(mensagem);
 
         var response = handler.handleAgendamento(ex);
 
@@ -58,12 +66,14 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(409, response.getBody().status());
         assertEquals("Scheduling Conflict", response.getBody().error());
-        assertEquals("Conflito de horário", response.getBody().message());
+        assertEquals(mensagem, response.getBody().message());
     }
 
     @Test
+    @DisplayName("deveRetornar400ParaIllegalArgumentException")
     void deveRetornar400ParaIllegalArgumentException() {
-        var ex = new IllegalArgumentException("Argumento inválido");
+        var mensagem = Instancio.create(String.class);
+        var ex = new IllegalArgumentException(mensagem);
 
         var response = handler.handleIllegalArgument(ex);
 
@@ -71,10 +81,11 @@ class GlobalExceptionHandlerTest {
         assertNotNull(response.getBody());
         assertEquals(400, response.getBody().status());
         assertEquals("Bad Request", response.getBody().error());
-        assertEquals("Argumento inválido", response.getBody().message());
+        assertEquals(mensagem, response.getBody().message());
     }
 
     @Test
+    @DisplayName("deveRetornar400ParaMethodArgumentNotValidException")
     void deveRetornar400ParaMethodArgumentNotValidException() {
         var bindingResult = mock(BindingResult.class);
         var fieldError = new FieldError("dto", "nome", "Nome é obrigatório");
@@ -92,6 +103,7 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("deveRetornar400ParaValidacaoComMultiplosCampos")
     void deveRetornar400ParaValidacaoComMultiplosCampos() {
         var bindingResult = mock(BindingResult.class);
         var errors = List.of(
@@ -110,8 +122,9 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("deveRetornar500ParaExcecaoGenerica")
     void deveRetornar500ParaExcecaoGenerica() {
-        var ex = new RuntimeException("Erro inesperado");
+        var ex = new RuntimeException(Instancio.create(String.class));
 
         var response = handler.handleGeneral(ex);
 
@@ -123,33 +136,42 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("deveVerificarMensagemDeResourceNotFoundException")
     void deveVerificarMensagemDeResourceNotFoundException() {
-        var ex = new ResourceNotFoundException("Barbeiro não encontrado");
+        var mensagem = Instancio.create(String.class);
+        var ex = new ResourceNotFoundException(mensagem);
 
-        assertEquals("Barbeiro não encontrado", ex.getMessage());
+        assertEquals(mensagem, ex.getMessage());
     }
 
     @Test
+    @DisplayName("deveVerificarMensagemDeBusinessException")
     void deveVerificarMensagemDeBusinessException() {
-        var ex = new BusinessException("Comissão inválida");
+        var mensagem = Instancio.create(String.class);
+        var ex = new BusinessException(mensagem);
 
-        assertEquals("Comissão inválida", ex.getMessage());
+        assertEquals(mensagem, ex.getMessage());
     }
 
     @Test
+    @DisplayName("deveVerificarMensagemDeAgendamentoException")
     void deveVerificarMensagemDeAgendamentoException() {
-        var ex = new AgendamentoException("Horário indisponível");
+        var mensagem = Instancio.create(String.class);
+        var ex = new AgendamentoException(mensagem);
 
-        assertEquals("Horário indisponível", ex.getMessage());
+        assertEquals(mensagem, ex.getMessage());
     }
 
     @Test
+    @DisplayName("deveVerificarCamposDoErrorResponse")
     void deveVerificarCamposDoErrorResponse() {
-        var response = new ErrorResponse(404, "Not Found", "Recurso não encontrado");
+        var mensagem = Instancio.create(String.class);
+        var error = Instancio.create(String.class);
+        var response = new ErrorResponse(404, error, mensagem);
 
         assertEquals(404, response.status());
-        assertEquals("Not Found", response.error());
-        assertEquals("Recurso não encontrado", response.message());
+        assertEquals(error, response.error());
+        assertEquals(mensagem, response.message());
         assertNotNull(response.timestamp());
     }
 }

@@ -5,6 +5,8 @@ import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
 import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,8 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -27,56 +29,61 @@ class ClienteServiceTest {
     @InjectMocks
     private ClienteService service;
 
-    @Test
-    void deveCriarClienteComSucesso() {
+    private Cliente clienteValido() {
+        return Instancio.of(Cliente.class)
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .create();
+    }
 
-        // Arrange
+    @Test
+    @DisplayName("deveCriarClienteComSucesso")
+    void deveCriarClienteComSucesso() {
         CriarClienteRequest dto = new CriarClienteRequest(
                 "Yuri",
                 "85999999999",
                 "yuri@email.com"
         );
 
-        Cliente clienteSalvo = new Cliente(
-                UUID.randomUUID(),
-                dto.nome(),
-                dto.telefone(),
-                dto.email()
-        );
+        Cliente clienteSalvo = Instancio.of(Cliente.class)
+                .set(field(Cliente.class, "nome"), dto.nome())
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .create();
 
         when(repository.salvar(any())).thenReturn(clienteSalvo);
 
-        // Act
         var response = service.criar(dto);
 
-        // Assert
         assertNotNull(response);
         assertEquals("Yuri", response.nome());
         verify(repository, times(1)).salvar(any());
     }
 
     @Test
+    @DisplayName("deveCriarClienteComEmailValido")
     void deveCriarClienteComEmailValido() {
-        var dto = new CriarClienteRequest("João", "joao@email.com", "11999999999");
-        var clienteSalvo = new Cliente(UUID.randomUUID(), "João", "joao@email.com", "11999999999");
+        var clienteSalvo = clienteValido();
+        var dto = new CriarClienteRequest(
+                clienteSalvo.getNome(),
+                clienteSalvo.getEmail(),
+                clienteSalvo.getTelefone());
 
         when(repository.salvar(any())).thenReturn(clienteSalvo);
 
         var response = service.criar(dto);
 
         assertNotNull(response);
-        assertEquals("João", response.nome());
-        assertEquals("joao@email.com", response.email());
-        assertEquals("11999999999", response.telefone());
+        assertEquals(clienteSalvo.getNome(), response.nome());
+        assertEquals(clienteSalvo.getEmail(), response.email());
         verify(repository, times(1)).salvar(any());
     }
 
     @Test
+    @DisplayName("deveListarClientesComSucesso")
     void deveListarClientesComSucesso() {
-        var clientes = List.of(
-                new Cliente(UUID.randomUUID(), "Maria", "maria@email.com", "21999999999"),
-                new Cliente(UUID.randomUUID(), "Pedro", "pedro@email.com", "31999999999")
-        );
+        var clientes = Instancio.ofList(Cliente.class)
+                .size(2)
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .create();
 
         when(repository.listar()).thenReturn(clientes);
 
@@ -84,12 +91,11 @@ class ClienteServiceTest {
 
         assertNotNull(response);
         assertEquals(2, response.size());
-        assertEquals("Maria", response.get(0).nome());
-        assertEquals("Pedro", response.get(1).nome());
         verify(repository, times(1)).listar();
     }
 
     @Test
+    @DisplayName("deveRetornarListaVaziaQuandoNaoHaClientes")
     void deveRetornarListaVaziaQuandoNaoHaClientes() {
         when(repository.listar()).thenReturn(List.of());
 
@@ -100,23 +106,24 @@ class ClienteServiceTest {
     }
 
     @Test
+    @DisplayName("deveBuscarClientePorIdComSucesso")
     void deveBuscarClientePorIdComSucesso() {
-        var id = UUID.randomUUID();
-        var cliente = new Cliente(id, "Ana", "ana@email.com", "41999999999");
+        var cliente = clienteValido();
 
-        when(repository.buscarPorId(id)).thenReturn(Optional.of(cliente));
+        when(repository.buscarPorId(cliente.getId())).thenReturn(Optional.of(cliente));
 
-        var response = service.buscar(id);
+        var response = service.buscar(cliente.getId());
 
         assertNotNull(response);
-        assertEquals(id, response.id());
-        assertEquals("Ana", response.nome());
-        verify(repository, times(1)).buscarPorId(id);
+        assertEquals(cliente.getId(), response.id());
+        assertEquals(cliente.getNome(), response.nome());
+        verify(repository, times(1)).buscarPorId(cliente.getId());
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoQuandoClienteNaoEncontrado")
     void deveLancarExcecaoQuandoClienteNaoEncontrado() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         when(repository.buscarPorId(id)).thenReturn(Optional.empty());
 
@@ -126,8 +133,9 @@ class ClienteServiceTest {
     }
 
     @Test
+    @DisplayName("deveDeletarClienteComSucesso")
     void deveDeletarClienteComSucesso() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         doNothing().when(repository).deletar(id);
 

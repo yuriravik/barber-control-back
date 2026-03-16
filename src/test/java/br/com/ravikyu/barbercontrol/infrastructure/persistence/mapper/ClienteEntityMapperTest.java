@@ -2,58 +2,70 @@ package br.com.ravikyu.barbercontrol.infrastructure.persistence.mapper;
 
 import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.ClienteEntity;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.UUID;
-
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ClienteEntityMapperTest {
 
     @Test
+    @DisplayName("deveMapearClienteParaEntity")
     void deveMapearClienteParaEntity() {
-        var id = UUID.randomUUID();
-        var cliente = new Cliente(id, "João", "joao@email.com", "11999999999");
+        var cliente = Instancio.of(Cliente.class)
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .create();
 
         var entity = ClienteEntityMapper.toEntity(cliente);
 
-        assertEquals(id, entity.getId());
-        assertEquals("João", entity.getNome());
-        assertEquals("11999999999", entity.getTelefone());
-        assertEquals("joao@email.com", entity.getEmail());
+        assertEquals(cliente.getId(), entity.getId());
+        assertEquals(cliente.getNome(), entity.getNome());
+        assertEquals(cliente.getTelefone(), entity.getTelefone());
+        assertEquals(cliente.getEmail(), entity.getEmail());
     }
 
     @Test
+    @DisplayName("deveMapearClienteSemIdParaEntity")
     void deveMapearClienteSemIdParaEntity() {
-        var cliente = new Cliente(null, "Maria", "maria@email.com", "21999999999");
+        var cliente = Instancio.of(Cliente.class)
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .set(field(Cliente.class, "id"), null)
+                .create();
 
         var entity = ClienteEntityMapper.toEntity(cliente);
 
         assertNull(entity.getId());
-        assertEquals("Maria", entity.getNome());
+        assertEquals(cliente.getNome(), entity.getNome());
     }
 
     @Test
+    @DisplayName("deveMapearEntityParaClienteResponse")
     void deveMapearEntityParaClienteResponse() {
-        var id = UUID.randomUUID();
-        var entity = new ClienteEntity(id, "Pedro", "31999999999", "pedro@email.com");
+        var entity = Instancio.of(ClienteEntity.class)
+                .generate(field(ClienteEntity.class, "email"), gen -> gen.net().email())
+                .create();
 
         var response = ClienteEntityMapper.toDomain(entity);
 
-        assertEquals(id, response.id());
-        assertEquals("Pedro", response.nome());
-        assertEquals("pedro@email.com", response.email());
-        assertEquals("31999999999", response.telefone());
+        assertEquals(entity.getId(), response.id());
+        assertEquals(entity.getNome(), response.nome());
+        assertEquals(entity.getEmail(), response.email());
+        assertEquals(entity.getTelefone(), response.telefone());
     }
 
     @Test
+    @DisplayName("deveMapearEntitySemTelefoneParaResponse")
     void deveMapearEntitySemTelefoneParaResponse() {
-        var id = UUID.randomUUID();
-        var entity = new ClienteEntity(id, "Ana", null, "ana@email.com");
+        var entity = Instancio.of(ClienteEntity.class)
+                .generate(field(ClienteEntity.class, "email"), gen -> gen.net().email())
+                .set(field(ClienteEntity.class, "telefone"), null)
+                .create();
 
         var response = ClienteEntityMapper.toDomain(entity);
 
         assertNull(response.telefone());
-        assertEquals("Ana", response.nome());
+        assertEquals(entity.getNome(), response.nome());
     }
 }

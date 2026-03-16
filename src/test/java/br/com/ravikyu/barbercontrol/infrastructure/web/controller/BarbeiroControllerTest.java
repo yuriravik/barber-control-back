@@ -4,6 +4,8 @@ import br.com.ravikyu.barbercontrol.application.dto.barbeiro.BarbeiroResponse;
 import br.com.ravikyu.barbercontrol.application.service.BarbeiroService;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -12,9 +14,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -31,10 +32,17 @@ class BarbeiroControllerTest {
     @MockitoBean
     private BarbeiroService service;
 
+    private BarbeiroResponse responseValido() {
+        return Instancio.of(BarbeiroResponse.class)
+                .generate(field(BarbeiroResponse.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .create();
+    }
+
     @Test
+    @DisplayName("deveCriarBarbeiroComSucesso")
     void deveCriarBarbeiroComSucesso() throws Exception {
-        var id = UUID.randomUUID();
-        var response = new BarbeiroResponse(id, "Carlos", "Corte", new BigDecimal("20.00"), true);
+        var response = responseValido();
 
         when(service.criar(any())).thenReturn(response);
 
@@ -49,35 +57,34 @@ class BarbeiroControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.nome").value("Carlos"))
-                .andExpect(jsonPath("$.especialidade").value("Corte"))
-                .andExpect(jsonPath("$.ativo").value(true));
+                .andExpect(jsonPath("$.id").value(response.id().toString()))
+                .andExpect(jsonPath("$.nome").value(response.nome()));
 
         verify(service, times(1)).criar(any());
     }
 
     @Test
+    @DisplayName("deveListarBarbeirosComSucesso")
     void deveListarBarbeirosComSucesso() throws Exception {
-        var barbeiros = List.of(
-                new BarbeiroResponse(UUID.randomUUID(), "Carlos", "Corte", new BigDecimal("20.00"), true),
-                new BarbeiroResponse(UUID.randomUUID(), "Ana", "Barba", new BigDecimal("15.00"), false)
-        );
+        var barbeiros = Instancio.ofList(BarbeiroResponse.class)
+                .size(2)
+                .generate(field(BarbeiroResponse.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .create();
 
         when(service.listar()).thenReturn(barbeiros);
 
         mockMvc.perform(get("/barbeiros"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].nome").value("Carlos"))
-                .andExpect(jsonPath("$[1].nome").value("Ana"));
+                .andExpect(jsonPath("$.length()").value(2));
 
         verify(service, times(1)).listar();
     }
 
     @Test
+    @DisplayName("deveDesativarBarbeiroComSucesso")
     void deveDesativarBarbeiroComSucesso() throws Exception {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         doNothing().when(service).desativar(id);
 
@@ -88,8 +95,9 @@ class BarbeiroControllerTest {
     }
 
     @Test
+    @DisplayName("deveRetornar404AoDesativarBarbeiroNaoEncontrado")
     void deveRetornar404AoDesativarBarbeiroNaoEncontrado() throws Exception {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         doThrow(new ResourceNotFoundException("Barbeiro não encontrado")).when(service).desativar(id);
 

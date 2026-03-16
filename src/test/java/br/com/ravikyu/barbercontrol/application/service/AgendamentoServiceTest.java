@@ -10,6 +10,8 @@ import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -30,13 +33,10 @@ class AgendamentoServiceTest {
 
     @Mock
     private AgendamentoRepository repository;
-
     @Mock
     private BarbeiroRepository barbeiroRepository;
-
     @Mock
     private ClienteRepository clienteRepository;
-
     @Mock
     private ServicoRepository servicoRepository;
 
@@ -45,69 +45,84 @@ class AgendamentoServiceTest {
 
     private static final LocalDateTime DATA_HORA = LocalDateTime.now().plusDays(1);
 
-    private Servico criarServico(UUID id) {
-        return new Servico(id, "Corte Simples", "Desc", new BigDecimal("30.00"), 30, true);
+    private Cliente clienteValido() {
+        return Instancio.of(Cliente.class)
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .create();
     }
 
-    private Cliente criarCliente(UUID id) {
-        return new Cliente(id, "João", "joao@email.com", "11999999999");
+    private Barbeiro barbeiroValido() {
+        return Instancio.of(Barbeiro.class)
+                .generate(field(Barbeiro.class, "percentualComissao"),
+                        gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
+                .create();
     }
 
-    private Barbeiro criarBarbeiro(UUID id) {
-        return new Barbeiro(id, "Carlos", "Corte", new BigDecimal("20.00"), true);
+    private Servico servicoValido(int duracaoMinutos) {
+        return Instancio.of(Servico.class)
+                .set(field(Servico.class, "duracaoMinutos"), duracaoMinutos)
+                .create();
     }
 
-    private Agendamento criarAgendamento(UUID id, UUID clienteId, UUID barbeiroId, UUID servicoId) {
-        return new Agendamento(id, clienteId, barbeiroId, servicoId,
-                DATA_HORA, DATA_HORA.plusMinutes(30), "AGENDADO");
+    private Agendamento agendamentoSalvo(UUID id, UUID clienteId, UUID barbeiroId, UUID servicoId) {
+        return Instancio.of(Agendamento.class)
+                .set(field(Agendamento.class, "id"), id)
+                .set(field(Agendamento.class, "clienteId"), clienteId)
+                .set(field(Agendamento.class, "barbeiroId"), barbeiroId)
+                .set(field(Agendamento.class, "servicoId"), servicoId)
+                .set(field(Agendamento.class, "dataHoraInicio"), DATA_HORA)
+                .set(field(Agendamento.class, "dataHoraFim"), DATA_HORA.plusMinutes(30))
+                .set(field(Agendamento.class, "status"), "AGENDADO")
+                .create();
     }
 
     @Test
+    @DisplayName("deveCriarAgendamentoComSucesso")
     void deveCriarAgendamentoComSucesso() {
-        var clienteId = UUID.randomUUID();
-        var barbeiroId = UUID.randomUUID();
-        var servicoId = UUID.randomUUID();
+        var cliente = clienteValido();
+        var barbeiro = barbeiroValido();
+        var servico = servicoValido(30);
         var agendamentoId = UUID.randomUUID();
+        var agendamento = agendamentoSalvo(agendamentoId, cliente.getId(), barbeiro.getId(), servico.getId());
 
-        var request = new CriarAgendamentoRequest(clienteId, barbeiroId, servicoId, DATA_HORA, null, null);
-        var servico = criarServico(servicoId);
-        var agendamentoSalvo = criarAgendamento(agendamentoId, clienteId, barbeiroId, servicoId);
+        var request = new CriarAgendamentoRequest(
+                cliente.getId(), barbeiro.getId(), servico.getId(), DATA_HORA, null, null);
 
-        when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.of(servico));
-        when(repository.salvar(any())).thenReturn(agendamentoSalvo);
-        when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamentoSalvo));
-        when(clienteRepository.buscarPorId(clienteId)).thenReturn(Optional.of(criarCliente(clienteId)));
-        when(barbeiroRepository.buscarPorId(barbeiroId)).thenReturn(Optional.of(criarBarbeiro(barbeiroId)));
-        when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.of(servico));
+        when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
+        when(repository.salvar(any())).thenReturn(agendamento);
+        when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
+        when(clienteRepository.buscarPorId(cliente.getId())).thenReturn(Optional.of(cliente));
+        when(barbeiroRepository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
+        when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
 
         var response = service.criar(request);
 
         assertNotNull(response);
         assertEquals(agendamentoId, response.id());
-        assertEquals("João", response.cliente());
-        assertEquals("Carlos", response.barbeiro());
-        assertEquals("Corte Simples", response.servico());
+        assertEquals(cliente.getNome(), response.cliente());
+        assertEquals(barbeiro.getNome(), response.barbeiro());
+        assertEquals(servico.getNome(), response.servico());
         assertEquals("AGENDADO", response.status());
     }
 
     @Test
+    @DisplayName("deveCalcularDataHoraFimAoCriarAgendamento")
     void deveCalcularDataHoraFimAoCriarAgendamento() {
-        var servicoId = UUID.randomUUID();
-        var clienteId = UUID.randomUUID();
-        var barbeiroId = UUID.randomUUID();
+        var cliente = clienteValido();
+        var barbeiro = barbeiroValido();
+        var servico = servicoValido(45);
         var agendamentoId = UUID.randomUUID();
-        var servico = new Servico(servicoId, "Barba", "Desc", new BigDecimal("20.00"), 45, true);
+        var agendamento = agendamentoSalvo(agendamentoId, cliente.getId(), barbeiro.getId(), servico.getId());
 
-        var request = new CriarAgendamentoRequest(clienteId, barbeiroId, servicoId, DATA_HORA, null, null);
-        var agendamentoSalvo = new Agendamento(agendamentoId, clienteId, barbeiroId, servicoId,
-                DATA_HORA, DATA_HORA.plusMinutes(45), "AGENDADO");
+        var request = new CriarAgendamentoRequest(
+                cliente.getId(), barbeiro.getId(), servico.getId(), DATA_HORA, null, null);
 
-        when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.of(servico));
-        when(repository.salvar(any())).thenReturn(agendamentoSalvo);
-        when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamentoSalvo));
-        when(clienteRepository.buscarPorId(clienteId)).thenReturn(Optional.of(criarCliente(clienteId)));
-        when(barbeiroRepository.buscarPorId(barbeiroId)).thenReturn(Optional.of(criarBarbeiro(barbeiroId)));
-        when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.of(servico));
+        when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
+        when(repository.salvar(any())).thenReturn(agendamento);
+        when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
+        when(clienteRepository.buscarPorId(cliente.getId())).thenReturn(Optional.of(cliente));
+        when(barbeiroRepository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
+        when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
 
         service.criar(request);
 
@@ -118,11 +133,11 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoAoCriarAgendamentoComServicoNaoEncontrado")
     void deveLancarExcecaoAoCriarAgendamentoComServicoNaoEncontrado() {
         var servicoId = UUID.randomUUID();
         var request = new CriarAgendamentoRequest(
-                UUID.randomUUID(), UUID.randomUUID(), servicoId, DATA_HORA, null, null
-        );
+                UUID.randomUUID(), UUID.randomUUID(), servicoId, DATA_HORA, null, null);
 
         when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.empty());
 
@@ -133,28 +148,29 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    @DisplayName("deveListarAgendamentosComSucesso")
     void deveListarAgendamentosComSucesso() {
-        var clienteId = UUID.randomUUID();
-        var barbeiroId = UUID.randomUUID();
-        var servicoId = UUID.randomUUID();
+        var cliente = clienteValido();
+        var barbeiro = barbeiroValido();
+        var servico = servicoValido(30);
         var agendamentoId = UUID.randomUUID();
-
-        var agendamento = criarAgendamento(agendamentoId, clienteId, barbeiroId, servicoId);
+        var agendamento = agendamentoSalvo(agendamentoId, cliente.getId(), barbeiro.getId(), servico.getId());
 
         when(repository.listar()).thenReturn(List.of(agendamento));
         when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
-        when(clienteRepository.buscarPorId(clienteId)).thenReturn(Optional.of(criarCliente(clienteId)));
-        when(barbeiroRepository.buscarPorId(barbeiroId)).thenReturn(Optional.of(criarBarbeiro(barbeiroId)));
-        when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.of(criarServico(servicoId)));
+        when(clienteRepository.buscarPorId(cliente.getId())).thenReturn(Optional.of(cliente));
+        when(barbeiroRepository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
+        when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
 
         var response = service.listar();
 
         assertNotNull(response);
         assertEquals(1, response.size());
-        assertEquals("João", response.get(0).cliente());
+        assertEquals(cliente.getNome(), response.get(0).cliente());
     }
 
     @Test
+    @DisplayName("deveRetornarListaVaziaQuandoNaoHaAgendamentos")
     void deveRetornarListaVaziaQuandoNaoHaAgendamentos() {
         when(repository.listar()).thenReturn(List.of());
 
@@ -165,30 +181,30 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    @DisplayName("deveBuscarAgendamentoPorIdComSucesso")
     void deveBuscarAgendamentoPorIdComSucesso() {
-        var clienteId = UUID.randomUUID();
-        var barbeiroId = UUID.randomUUID();
-        var servicoId = UUID.randomUUID();
+        var cliente = clienteValido();
+        var barbeiro = barbeiroValido();
+        var servico = servicoValido(30);
         var agendamentoId = UUID.randomUUID();
-
-        var agendamento = criarAgendamento(agendamentoId, clienteId, barbeiroId, servicoId);
+        var agendamento = agendamentoSalvo(agendamentoId, cliente.getId(), barbeiro.getId(), servico.getId());
 
         when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
-        when(clienteRepository.buscarPorId(clienteId)).thenReturn(Optional.of(criarCliente(clienteId)));
-        when(barbeiroRepository.buscarPorId(barbeiroId)).thenReturn(Optional.of(criarBarbeiro(barbeiroId)));
-        when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.of(criarServico(servicoId)));
+        when(clienteRepository.buscarPorId(cliente.getId())).thenReturn(Optional.of(cliente));
+        when(barbeiroRepository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
+        when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
 
         var response = service.buscar(agendamentoId);
 
         assertNotNull(response);
         assertEquals(agendamentoId, response.id());
-        assertEquals("João", response.cliente());
-        assertEquals("Carlos", response.barbeiro());
-        assertEquals("Corte Simples", response.servico());
-        assertEquals("AGENDADO", response.status());
+        assertEquals(cliente.getNome(), response.cliente());
+        assertEquals(barbeiro.getNome(), response.barbeiro());
+        assertEquals(servico.getNome(), response.servico());
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoQuandoAgendamentoNaoEncontrado")
     void deveLancarExcecaoQuandoAgendamentoNaoEncontrado() {
         var id = UUID.randomUUID();
 
@@ -200,13 +216,11 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoQuandoClienteDoAgendamentoNaoEncontrado")
     void deveLancarExcecaoQuandoClienteDoAgendamentoNaoEncontrado() {
-        var clienteId = UUID.randomUUID();
-        var barbeiroId = UUID.randomUUID();
-        var servicoId = UUID.randomUUID();
         var agendamentoId = UUID.randomUUID();
-
-        var agendamento = criarAgendamento(agendamentoId, clienteId, barbeiroId, servicoId);
+        var clienteId = UUID.randomUUID();
+        var agendamento = agendamentoSalvo(agendamentoId, clienteId, UUID.randomUUID(), UUID.randomUUID());
 
         when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
         when(clienteRepository.buscarPorId(clienteId)).thenReturn(Optional.empty());
@@ -217,16 +231,15 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoQuandoBarbeiroDoAgendamentoNaoEncontrado")
     void deveLancarExcecaoQuandoBarbeiroDoAgendamentoNaoEncontrado() {
+        var agendamentoId = UUID.randomUUID();
         var clienteId = UUID.randomUUID();
         var barbeiroId = UUID.randomUUID();
-        var servicoId = UUID.randomUUID();
-        var agendamentoId = UUID.randomUUID();
-
-        var agendamento = criarAgendamento(agendamentoId, clienteId, barbeiroId, servicoId);
+        var agendamento = agendamentoSalvo(agendamentoId, clienteId, barbeiroId, UUID.randomUUID());
 
         when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
-        when(clienteRepository.buscarPorId(clienteId)).thenReturn(Optional.of(criarCliente(clienteId)));
+        when(clienteRepository.buscarPorId(clienteId)).thenReturn(Optional.of(clienteValido()));
         when(barbeiroRepository.buscarPorId(barbeiroId)).thenReturn(Optional.empty());
 
         var ex = assertThrows(ResourceNotFoundException.class, () -> service.buscar(agendamentoId));
@@ -235,17 +248,17 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoQuandoServicoDoAgendamentoNaoEncontrado")
     void deveLancarExcecaoQuandoServicoDoAgendamentoNaoEncontrado() {
+        var agendamentoId = UUID.randomUUID();
         var clienteId = UUID.randomUUID();
         var barbeiroId = UUID.randomUUID();
         var servicoId = UUID.randomUUID();
-        var agendamentoId = UUID.randomUUID();
-
-        var agendamento = criarAgendamento(agendamentoId, clienteId, barbeiroId, servicoId);
+        var agendamento = agendamentoSalvo(agendamentoId, clienteId, barbeiroId, servicoId);
 
         when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
-        when(clienteRepository.buscarPorId(clienteId)).thenReturn(Optional.of(criarCliente(clienteId)));
-        when(barbeiroRepository.buscarPorId(barbeiroId)).thenReturn(Optional.of(criarBarbeiro(barbeiroId)));
+        when(clienteRepository.buscarPorId(clienteId)).thenReturn(Optional.of(clienteValido()));
+        when(barbeiroRepository.buscarPorId(barbeiroId)).thenReturn(Optional.of(barbeiroValido()));
         when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.empty());
 
         var ex = assertThrows(ResourceNotFoundException.class, () -> service.buscar(agendamentoId));
@@ -254,6 +267,7 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    @DisplayName("deveDeletarAgendamentoComSucesso")
     void deveDeletarAgendamentoComSucesso() {
         var id = UUID.randomUUID();
 

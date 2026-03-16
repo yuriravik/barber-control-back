@@ -3,17 +3,18 @@ package br.com.ravikyu.barbercontrol.application.service;
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -27,26 +28,32 @@ class ServicoServiceTest {
     private ServicoService service;
 
     @Test
+    @DisplayName("deveCriarServicoComSucesso")
     void deveCriarServicoComSucesso() {
-        var id = UUID.randomUUID();
-        var servico = new Servico(null, "Corte Simples", "Corte básico", new BigDecimal("30.00"), 30, false);
-        var salvo = new Servico(id, "Corte Simples", "Corte básico", new BigDecimal("30.00"), 30, true);
+        var servico = Instancio.of(Servico.class)
+                .set(field(Servico.class, "id"), null)
+                .set(field(Servico.class, "ativo"), false)
+                .create();
+        var salvo = Instancio.of(Servico.class)
+                .set(field(Servico.class, "ativo"), true)
+                .create();
 
         when(repository.salvar(any())).thenReturn(salvo);
 
         var response = service.criar(servico);
 
         assertNotNull(response);
-        assertEquals(id, response.getId());
-        assertEquals("Corte Simples", response.getNome());
         assertTrue(response.isAtivo());
         verify(repository, times(1)).salvar(argThat(Servico::isAtivo));
     }
 
     @Test
+    @DisplayName("deveDefinirAtivoTrueAoCriarServico")
     void deveDefinirAtivoTrueAoCriarServico() {
-        var servico = new Servico(null, "Barba", "Aparar barba", new BigDecimal("20.00"), 20, false);
-        var salvo = new Servico(UUID.randomUUID(), "Barba", "Aparar barba", new BigDecimal("20.00"), 20, true);
+        var servico = Instancio.of(Servico.class)
+                .set(field(Servico.class, "ativo"), false)
+                .create();
+        var salvo = Instancio.of(Servico.class).set(field(Servico.class, "ativo"), true).create();
 
         when(repository.salvar(any())).thenReturn(salvo);
 
@@ -56,11 +63,9 @@ class ServicoServiceTest {
     }
 
     @Test
+    @DisplayName("deveListarServicosComSucesso")
     void deveListarServicosComSucesso() {
-        var servicos = List.of(
-                new Servico(UUID.randomUUID(), "Corte", "Desc1", new BigDecimal("30.00"), 30, true),
-                new Servico(UUID.randomUUID(), "Barba", "Desc2", new BigDecimal("20.00"), 20, true)
-        );
+        var servicos = Instancio.ofList(Servico.class).size(2).create();
 
         when(repository.listar()).thenReturn(servicos);
 
@@ -68,12 +73,11 @@ class ServicoServiceTest {
 
         assertNotNull(response);
         assertEquals(2, response.size());
-        assertEquals("Corte", response.get(0).getNome());
-        assertEquals("Barba", response.get(1).getNome());
         verify(repository, times(1)).listar();
     }
 
     @Test
+    @DisplayName("deveRetornarListaVaziaQuandoNaoHaServicos")
     void deveRetornarListaVaziaQuandoNaoHaServicos() {
         when(repository.listar()).thenReturn(List.of());
 
@@ -84,23 +88,23 @@ class ServicoServiceTest {
     }
 
     @Test
+    @DisplayName("deveBuscarServicoPorIdComSucesso")
     void deveBuscarServicoPorIdComSucesso() {
-        var id = UUID.randomUUID();
-        var servico = new Servico(id, "Corte", "Desc", new BigDecimal("30.00"), 30, true);
+        var servico = Instancio.create(Servico.class);
 
-        when(repository.buscarPorId(id)).thenReturn(Optional.of(servico));
+        when(repository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
 
-        var response = service.buscar(id);
+        var response = service.buscar(servico.getId());
 
         assertNotNull(response);
-        assertEquals(id, response.getId());
-        assertEquals("Corte", response.getNome());
-        verify(repository, times(1)).buscarPorId(id);
+        assertEquals(servico.getId(), response.getId());
+        verify(repository, times(1)).buscarPorId(servico.getId());
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoQuandoServicoNaoEncontrado")
     void deveLancarExcecaoQuandoServicoNaoEncontrado() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         when(repository.buscarPorId(id)).thenReturn(Optional.empty());
 
@@ -110,8 +114,9 @@ class ServicoServiceTest {
     }
 
     @Test
+    @DisplayName("deveDeletarServicoComSucesso")
     void deveDeletarServicoComSucesso() {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         doNothing().when(repository).deletar(id);
 

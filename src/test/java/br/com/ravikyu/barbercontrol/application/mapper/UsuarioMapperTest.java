@@ -2,6 +2,8 @@ package br.com.ravikyu.barbercontrol.application.mapper;
 
 import br.com.ravikyu.barbercontrol.application.usuario.mapper.UsuarioMapper;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -9,43 +11,60 @@ import static org.junit.jupiter.api.Assertions.*;
 class UsuarioMapperTest {
 
     @Test
+    @DisplayName("deveMapearParaDomainComRoleAdmin")
     void deveMapearParaDomainComRoleAdmin() {
-        var usuario = UsuarioMapper.toDomain("admin@email.com", "senha123", "ADMIN");
+        var email = Instancio.gen().net().email().get();
+        var senha = Instancio.create(String.class);
 
-        assertEquals("admin@email.com", usuario.getEmail());
-        assertEquals("senha123", usuario.getSenha());
+        var usuario = UsuarioMapper.toDomain(email, senha, "ADMIN");
+
+        assertEquals(email, usuario.getEmail());
+        assertEquals(senha, usuario.getSenha());
         assertEquals(Role.ADMIN, usuario.getRole());
     }
 
     @Test
+    @DisplayName("deveMapearParaDomainComRoleBarbeiro")
     void deveMapearParaDomainComRoleBarbeiro() {
-        var usuario = UsuarioMapper.toDomain("barbeiro@email.com", "senha456", "BARBEIRO");
+        var email = Instancio.gen().net().email().get();
+
+        var usuario = UsuarioMapper.toDomain(email, Instancio.create(String.class), "BARBEIRO");
 
         assertEquals(Role.BARBEIRO, usuario.getRole());
     }
 
     @Test
+    @DisplayName("deveMapearParaDomainComRoleEmMinusculas")
     void deveMapearParaDomainComRoleEmMinusculas() {
-        var usuario = UsuarioMapper.toDomain("user@email.com", "senha", "admin");
+        var email = Instancio.gen().net().email().get();
+
+        var usuario = UsuarioMapper.toDomain(email, Instancio.create(String.class), "admin");
 
         assertEquals(Role.ADMIN, usuario.getRole());
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoQuandoRoleInvalida")
     void deveLancarExcecaoQuandoRoleInvalida() {
+        var email = Instancio.gen().net().email().get();
+
         assertThrows(IllegalArgumentException.class,
-                () -> UsuarioMapper.toDomain("user@email.com", "senha", "GERENTE"));
+                () -> UsuarioMapper.toDomain(email, "senha", "GERENTE"));
     }
 
     @Test
+    @DisplayName("deveMapearParaLoginResponse")
     void deveMapearParaLoginResponse() {
-        var response = UsuarioMapper.toResponse("meu-token-jwt");
+        var token = Instancio.create(String.class);
 
-        assertEquals("meu-token-jwt", response.token());
+        var response = UsuarioMapper.toResponse(token);
+
+        assertEquals(token, response.token());
         assertEquals("Bearer", response.tipo());
     }
 
     @Test
+    @DisplayName("deveMapearParaLoginResponseComTokenVazio")
     void deveMapearParaLoginResponseComTokenVazio() {
         var response = UsuarioMapper.toResponse("");
 

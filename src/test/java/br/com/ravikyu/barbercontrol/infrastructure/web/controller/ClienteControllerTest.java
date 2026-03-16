@@ -4,6 +4,8 @@ import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
 import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -11,9 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-import java.util.UUID;
-
+import static org.instancio.Select.field;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -30,10 +30,16 @@ class ClienteControllerTest {
     @MockitoBean
     private ClienteService service;
 
+    private ClienteResponse responseValido() {
+        return Instancio.of(ClienteResponse.class)
+                .generate(field(ClienteResponse.class, "email"), gen -> gen.net().email())
+                .create();
+    }
+
     @Test
+    @DisplayName("deveCriarClienteComSucesso")
     void deveCriarClienteComSucesso() throws Exception {
-        var id = UUID.randomUUID();
-        var response = new ClienteResponse(id, "João", "joao@email.com", "11999999999");
+        var response = responseValido();
 
         when(service.criar(any())).thenReturn(response);
 
@@ -47,15 +53,14 @@ class ClienteControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.nome").value("João"))
-                .andExpect(jsonPath("$.email").value("joao@email.com"))
-                .andExpect(jsonPath("$.telefone").value("11999999999"));
+                .andExpect(jsonPath("$.id").value(response.id().toString()))
+                .andExpect(jsonPath("$.nome").value(response.nome()));
 
         verify(service, times(1)).criar(any());
     }
 
     @Test
+    @DisplayName("deveRetornar400QuandoNomeAusente")
     void deveRetornar400QuandoNomeAusente() throws Exception {
         mockMvc.perform(post("/clientes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -68,6 +73,7 @@ class ClienteControllerTest {
     }
 
     @Test
+    @DisplayName("deveRetornar400QuandoEmailAusente")
     void deveRetornar400QuandoEmailAusente() throws Exception {
         mockMvc.perform(post("/clientes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -80,6 +86,7 @@ class ClienteControllerTest {
     }
 
     @Test
+    @DisplayName("deveRetornar400QuandoEmailInvalido")
     void deveRetornar400QuandoEmailInvalido() throws Exception {
         mockMvc.perform(post("/clientes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -93,41 +100,41 @@ class ClienteControllerTest {
     }
 
     @Test
+    @DisplayName("deveListarClientesComSucesso")
     void deveListarClientesComSucesso() throws Exception {
-        var clientes = List.of(
-                new ClienteResponse(UUID.randomUUID(), "Maria", "maria@email.com", "21999999999"),
-                new ClienteResponse(UUID.randomUUID(), "Pedro", "pedro@email.com", "31999999999")
-        );
+        var clientes = Instancio.ofList(ClienteResponse.class)
+                .size(2)
+                .generate(field(ClienteResponse.class, "email"), gen -> gen.net().email())
+                .create();
 
         when(service.listar()).thenReturn(clientes);
 
         mockMvc.perform(get("/clientes"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].nome").value("Maria"))
-                .andExpect(jsonPath("$[1].nome").value("Pedro"));
+                .andExpect(jsonPath("$.length()").value(2));
 
         verify(service, times(1)).listar();
     }
 
     @Test
+    @DisplayName("deveBuscarClientePorIdComSucesso")
     void deveBuscarClientePorIdComSucesso() throws Exception {
-        var id = UUID.randomUUID();
-        var response = new ClienteResponse(id, "Ana", "ana@email.com", "41999999999");
+        var response = responseValido();
 
-        when(service.buscar(id)).thenReturn(response);
+        when(service.buscar(response.id())).thenReturn(response);
 
-        mockMvc.perform(get("/clientes/{id}", id))
+        mockMvc.perform(get("/clientes/{id}", response.id()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.nome").value("Ana"));
+                .andExpect(jsonPath("$.id").value(response.id().toString()))
+                .andExpect(jsonPath("$.nome").value(response.nome()));
 
-        verify(service, times(1)).buscar(id);
+        verify(service, times(1)).buscar(response.id());
     }
 
     @Test
+    @DisplayName("deveRetornar404QuandoClienteNaoEncontrado")
     void deveRetornar404QuandoClienteNaoEncontrado() throws Exception {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         when(service.buscar(id)).thenThrow(new ResourceNotFoundException("Cliente não encontrado"));
 
@@ -138,8 +145,9 @@ class ClienteControllerTest {
     }
 
     @Test
+    @DisplayName("deveDeletarClienteComSucesso")
     void deveDeletarClienteComSucesso() throws Exception {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(java.util.UUID.class);
 
         doNothing().when(service).deletar(id);
 

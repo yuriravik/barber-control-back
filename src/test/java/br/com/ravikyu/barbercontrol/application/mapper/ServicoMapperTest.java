@@ -2,32 +2,39 @@ package br.com.ravikyu.barbercontrol.application.mapper;
 
 import br.com.ravikyu.barbercontrol.application.dto.CriarServicoRequest;
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
-import java.util.UUID;
-
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ServicoMapperTest {
 
     @Test
+    @DisplayName("deveMapearRequestParaDomain")
     void deveMapearRequestParaDomain() {
-        var request = new CriarServicoRequest("Corte Simples", "Corte básico", new BigDecimal("30.00"), 30, true);
+        var request = Instancio.of(CriarServicoRequest.class)
+                .generate(field(CriarServicoRequest.class, "nome"), gen -> gen.string().minLength(1))
+                .create();
 
         var servico = ServicoMapper.toRequest(request);
 
         assertNull(servico.getId());
-        assertEquals("Corte Simples", servico.getNome());
-        assertEquals("Corte básico", servico.getDescricao());
-        assertEquals(new BigDecimal("30.00"), servico.getPreco());
-        assertEquals(30, servico.getDuracaoMinutos());
-        assertTrue(servico.isAtivo());
+        assertEquals(request.nome(), servico.getNome());
+        assertEquals(request.descricao(), servico.getDescricao());
+        assertEquals(request.preco(), servico.getPreco());
+        assertEquals(request.duracaoMinutos(), servico.getDuracaoMinutos());
+        assertEquals(request.ativo(), servico.isAtivo());
     }
 
     @Test
+    @DisplayName("deveMapearRequestInativo")
     void deveMapearRequestInativo() {
-        var request = new CriarServicoRequest("Barba", "Aparar barba", new BigDecimal("20.00"), 20, false);
+        var request = Instancio.of(CriarServicoRequest.class)
+                .generate(field(CriarServicoRequest.class, "nome"), gen -> gen.string().minLength(1))
+                .set(field(CriarServicoRequest.class, "ativo"), false)
+                .create();
 
         var servico = ServicoMapper.toRequest(request);
 
@@ -35,23 +42,26 @@ class ServicoMapperTest {
     }
 
     @Test
+    @DisplayName("deveMapearDomainParaResponse")
     void deveMapearDomainParaResponse() {
-        var id = UUID.randomUUID();
-        var servico = new Servico(id, "Corte + Barba", "Combo", new BigDecimal("50.00"), 45, true);
+        var servico = Instancio.create(Servico.class);
 
         var response = ServicoMapper.toDomain(servico);
 
-        assertEquals(id, response.id());
-        assertEquals("Corte + Barba", response.nome());
-        assertEquals("Combo", response.descricao());
-        assertEquals(new BigDecimal("50.00"), response.preco());
-        assertEquals(45, response.duracaoMinutos());
-        assertTrue(response.ativo());
+        assertEquals(servico.getId(), response.id());
+        assertEquals(servico.getNome(), response.nome());
+        assertEquals(servico.getDescricao(), response.descricao());
+        assertEquals(servico.getPreco(), response.preco());
+        assertEquals(servico.getDuracaoMinutos(), response.duracaoMinutos());
+        assertEquals(servico.isAtivo(), response.ativo());
     }
 
     @Test
+    @DisplayName("deveMapearDomainParaResponseInativo")
     void deveMapearDomainParaResponseInativo() {
-        var servico = new Servico(UUID.randomUUID(), "Coloração", "Tingimento", new BigDecimal("80.00"), 60, false);
+        var servico = Instancio.of(Servico.class)
+                .set(field(Servico.class, "ativo"), false)
+                .create();
 
         var response = ServicoMapper.toDomain(servico);
 

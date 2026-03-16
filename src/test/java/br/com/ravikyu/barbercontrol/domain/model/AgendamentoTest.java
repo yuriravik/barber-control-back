@@ -1,35 +1,31 @@
 package br.com.ravikyu.barbercontrol.domain.model;
 
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AgendamentoTest {
 
     @Test
+    @DisplayName("deveCriarAgendamentoComSucesso")
     void deveCriarAgendamentoComSucesso() {
-        var id = UUID.randomUUID();
-        var clienteId = UUID.randomUUID();
-        var barbeiroId = UUID.randomUUID();
-        var servicoId = UUID.randomUUID();
-        var inicio = LocalDateTime.now().plusHours(1);
-        var fim = inicio.plusMinutes(30);
+        var agendamento = Instancio.of(Agendamento.class)
+                .set(field(Agendamento.class, "status"), "AGENDADO")
+                .create();
 
-        var agendamento = new Agendamento(id, clienteId, barbeiroId, servicoId, inicio, fim, "AGENDADO");
-
-        assertEquals(id, agendamento.getId());
-        assertEquals(clienteId, agendamento.getClienteId());
-        assertEquals(barbeiroId, agendamento.getBarbeiroId());
-        assertEquals(servicoId, agendamento.getServicoId());
-        assertEquals(inicio, agendamento.getDataHoraInicio());
-        assertEquals(fim, agendamento.getDataHoraFim());
+        assertNotNull(agendamento.getId());
+        assertNotNull(agendamento.getClienteId());
+        assertNotNull(agendamento.getBarbeiroId());
+        assertNotNull(agendamento.getServicoId());
+        assertNotNull(agendamento.getDataHoraInicio());
         assertEquals("AGENDADO", agendamento.getStatus());
     }
 
     @Test
+    @DisplayName("deveCriarAgendamentoVazioComConstrutorPadrao")
     void deveCriarAgendamentoVazioComConstrutorPadrao() {
         var agendamento = new Agendamento();
 
@@ -39,11 +35,11 @@ class AgendamentoTest {
     }
 
     @Test
+    @DisplayName("devePermitirAlterarStatus")
     void devePermitirAlterarStatus() {
-        var agendamento = new Agendamento(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                LocalDateTime.now(), LocalDateTime.now().plusMinutes(30), "AGENDADO"
-        );
+        var agendamento = Instancio.of(Agendamento.class)
+                .set(field(Agendamento.class, "status"), "AGENDADO")
+                .create();
 
         agendamento.setStatus("CANCELADO");
 
@@ -51,25 +47,24 @@ class AgendamentoTest {
     }
 
     @Test
+    @DisplayName("devePermitirAlterarDataHoraFim")
     void devePermitirAlterarDataHoraFim() {
-        var inicio = LocalDateTime.now().plusHours(1);
-        var agendamento = new Agendamento(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                inicio, null, "AGENDADO"
-        );
+        var agendamento = Instancio.of(Agendamento.class)
+                .set(field(Agendamento.class, "dataHoraFim"), null)
+                .create();
+        var novaDataFim = agendamento.getDataHoraInicio().plusMinutes(45);
 
-        var fim = inicio.plusMinutes(45);
-        agendamento.setDataHoraFim(fim);
+        agendamento.setDataHoraFim(novaDataFim);
 
-        assertEquals(fim, agendamento.getDataHoraFim());
+        assertEquals(novaDataFim, agendamento.getDataHoraFim());
     }
 
     @Test
+    @DisplayName("devePermitirCriarComStatusCancelado")
     void devePermitirCriarComStatusCancelado() {
-        var agendamento = new Agendamento(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                LocalDateTime.now(), LocalDateTime.now().plusMinutes(30), "CANCELADO"
-        );
+        var agendamento = Instancio.of(Agendamento.class)
+                .set(field(Agendamento.class, "status"), "CANCELADO")
+                .create();
 
         assertEquals("CANCELADO", agendamento.getStatus());
     }

@@ -5,6 +5,8 @@ import br.com.ravikyu.barbercontrol.domain.model.enuns.FormaPagamento;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusAgendamento;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusPagamento;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class EnumsDtoTest {
 
     @Test
+    @DisplayName("deveConterTodosOsStatusAgendamento")
     void deveConterTodosOsStatusAgendamento() {
         var values = StatusAgendamento.values();
 
@@ -22,6 +25,7 @@ class EnumsDtoTest {
     }
 
     @Test
+    @DisplayName("deveConterTodosOsStatusPagamento")
     void deveConterTodosOsStatusPagamento() {
         var values = StatusPagamento.values();
 
@@ -32,6 +36,7 @@ class EnumsDtoTest {
     }
 
     @Test
+    @DisplayName("deveConterTodasAsFormasDePagamento")
     void deveConterTodasAsFormasDePagamento() {
         var values = FormaPagamento.values();
 
@@ -42,6 +47,7 @@ class EnumsDtoTest {
     }
 
     @Test
+    @DisplayName("deveConterTodasAsRoles")
     void deveConterTodasAsRoles() {
         var values = Role.values();
 
@@ -51,10 +57,14 @@ class EnumsDtoTest {
     }
 
     @Test
+    @DisplayName("deveCriarLoginRequestComSucesso")
     void deveCriarLoginRequestComSucesso() {
-        var request = new LoginRequest("usuario@email.com", "senha123");
+        var email = Instancio.gen().net().email().get();
+        var senha = Instancio.create(String.class);
 
-        assertEquals("usuario@email.com", request.email());
-        assertEquals("senha123", request.senha());
+        var request = new LoginRequest(email, senha);
+
+        assertEquals(email, request.email());
+        assertEquals(senha, request.senha());
     }
 }

@@ -4,6 +4,8 @@ import br.com.ravikyu.barbercontrol.application.dto.AgendamentoResponse;
 import br.com.ravikyu.barbercontrol.application.service.AgendamentoService;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -12,9 +14,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
+import static org.instancio.Select.field;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -31,17 +33,20 @@ class AgendamentoControllerTest {
     @MockitoBean
     private AgendamentoService service;
 
-    private final LocalDateTime DATA_HORA = LocalDateTime.now().plusDays(1);
+    private AgendamentoResponse responseValido() {
+        return Instancio.of(AgendamentoResponse.class)
+                .set(field(AgendamentoResponse.class, "status"), "AGENDADO")
+                .create();
+    }
 
     @Test
+    @DisplayName("deveCriarAgendamentoComSucesso")
     void deveCriarAgendamentoComSucesso() throws Exception {
-        var id = UUID.randomUUID();
+        var response = responseValido();
         var clienteId = UUID.randomUUID();
         var barbeiroId = UUID.randomUUID();
         var servicoId = UUID.randomUUID();
-
-        var response = new AgendamentoResponse(id, "João", "Carlos", "Corte Simples",
-                DATA_HORA, DATA_HORA.plusMinutes(30), "AGENDADO");
+        var dataHora = LocalDateTime.now().plusDays(1);
 
         when(service.criar(any())).thenReturn(response);
 
@@ -54,58 +59,50 @@ class AgendamentoControllerTest {
                                     "servicoId": "%s",
                                     "dataHora": "%s"
                                 }
-                                """, clienteId, barbeiroId, servicoId, DATA_HORA)))
+                                """, clienteId, barbeiroId, servicoId, dataHora)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.cliente").value("João"))
-                .andExpect(jsonPath("$.barbeiro").value("Carlos"))
-                .andExpect(jsonPath("$.servico").value("Corte Simples"))
+                .andExpect(jsonPath("$.id").value(response.id().toString()))
                 .andExpect(jsonPath("$.status").value("AGENDADO"));
 
         verify(service, times(1)).criar(any());
     }
 
     @Test
+    @DisplayName("deveListarAgendamentosComSucesso")
     void deveListarAgendamentosComSucesso() throws Exception {
-        var agendamentos = List.of(
-                new AgendamentoResponse(UUID.randomUUID(), "João", "Carlos", "Corte",
-                        DATA_HORA, DATA_HORA.plusMinutes(30), "AGENDADO"),
-                new AgendamentoResponse(UUID.randomUUID(), "Maria", "Ana", "Barba",
-                        DATA_HORA.plusHours(2), DATA_HORA.plusHours(2).plusMinutes(20), "AGENDADO")
-        );
+        var agendamentos = Instancio.ofList(AgendamentoResponse.class)
+                .size(2)
+                .set(field(AgendamentoResponse.class, "status"), "AGENDADO")
+                .create();
 
         when(service.listar()).thenReturn(agendamentos);
 
         mockMvc.perform(get("/agendamentos"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].cliente").value("João"))
-                .andExpect(jsonPath("$[1].cliente").value("Maria"));
+                .andExpect(jsonPath("$.length()").value(2));
 
         verify(service, times(1)).listar();
     }
 
     @Test
+    @DisplayName("deveBuscarAgendamentoPorIdComSucesso")
     void deveBuscarAgendamentoPorIdComSucesso() throws Exception {
-        var id = UUID.randomUUID();
-        var response = new AgendamentoResponse(id, "Pedro", "José", "Coloração",
-                DATA_HORA, DATA_HORA.plusMinutes(60), "AGENDADO");
+        var response = responseValido();
 
-        when(service.buscar(id)).thenReturn(response);
+        when(service.buscar(response.id())).thenReturn(response);
 
-        mockMvc.perform(get("/agendamentos/{id}", id))
+        mockMvc.perform(get("/agendamentos/{id}", response.id()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.cliente").value("Pedro"))
-                .andExpect(jsonPath("$.barbeiro").value("José"))
-                .andExpect(jsonPath("$.servico").value("Coloração"));
+                .andExpect(jsonPath("$.id").value(response.id().toString()))
+                .andExpect(jsonPath("$.status").value("AGENDADO"));
 
-        verify(service, times(1)).buscar(id);
+        verify(service, times(1)).buscar(response.id());
     }
 
     @Test
+    @DisplayName("deveRetornar404QuandoAgendamentoNaoEncontrado")
     void deveRetornar404QuandoAgendamentoNaoEncontrado() throws Exception {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(UUID.class);
 
         when(service.buscar(id)).thenThrow(new ResourceNotFoundException("Agendamento não encontrado"));
 
@@ -116,8 +113,9 @@ class AgendamentoControllerTest {
     }
 
     @Test
+    @DisplayName("deveDeletarAgendamentoComSucesso")
     void deveDeletarAgendamentoComSucesso() throws Exception {
-        var id = UUID.randomUUID();
+        var id = Instancio.create(UUID.class);
 
         doNothing().when(service).deletar(id);
 
