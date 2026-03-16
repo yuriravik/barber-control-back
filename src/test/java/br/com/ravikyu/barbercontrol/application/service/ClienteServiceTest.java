@@ -4,14 +4,19 @@ import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
 import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
+import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
+import org.instancio.Instancio;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.UUID;
+import java.util.List;
+import java.util.Optional;
 
+import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -24,31 +29,118 @@ class ClienteServiceTest {
     @InjectMocks
     private ClienteService service;
 
-    @Test
-    void deveCriarClienteComSucesso() {
+    private Cliente clienteValido() {
+        return Instancio.of(Cliente.class)
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .create();
+    }
 
-        // Arrange
+    @Test
+    @DisplayName("deveCriarClienteComSucesso")
+    void deveCriarClienteComSucesso() {
         CriarClienteRequest dto = new CriarClienteRequest(
                 "Yuri",
                 "yuri@email.com",
                 "85999999999"
         );
 
-        Cliente clienteSalvo = new Cliente(
-                UUID.randomUUID(),
-                dto.nome(),
-                dto.email(),
-                dto.telefone()
-        );
+        Cliente clienteSalvo = Instancio.of(Cliente.class)
+                .set(field(Cliente.class, "nome"), dto.nome())
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .create();
 
         when(repository.salvar(any())).thenReturn(clienteSalvo);
 
-        // Act
         var response = service.criar(dto);
 
-        // Assert
         assertNotNull(response);
         assertEquals("Yuri", response.nome());
         verify(repository, times(1)).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveCriarClienteComEmailValido")
+    void deveCriarClienteComEmailValido() {
+        var clienteSalvo = clienteValido();
+        var dto = new CriarClienteRequest(
+                clienteSalvo.getNome(),
+                clienteSalvo.getEmail(),
+                clienteSalvo.getTelefone());
+
+        when(repository.salvar(any())).thenReturn(clienteSalvo);
+
+        var response = service.criar(dto);
+
+        assertNotNull(response);
+        assertEquals(clienteSalvo.getNome(), response.nome());
+        assertEquals(clienteSalvo.getEmail(), response.email());
+        verify(repository, times(1)).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveListarClientesComSucesso")
+    void deveListarClientesComSucesso() {
+        var clientes = Instancio.ofList(Cliente.class)
+                .size(2)
+                .generate(field(Cliente.class, "email"), gen -> gen.net().email())
+                .create();
+
+        when(repository.listar()).thenReturn(clientes);
+
+        var response = service.listar();
+
+        assertNotNull(response);
+        assertEquals(2, response.size());
+        verify(repository, times(1)).listar();
+    }
+
+    @Test
+    @DisplayName("deveRetornarListaVaziaQuandoNaoHaClientes")
+    void deveRetornarListaVaziaQuandoNaoHaClientes() {
+        when(repository.listar()).thenReturn(List.of());
+
+        var response = service.listar();
+
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+    }
+
+    @Test
+    @DisplayName("deveBuscarClientePorIdComSucesso")
+    void deveBuscarClientePorIdComSucesso() {
+        var cliente = clienteValido();
+
+        when(repository.buscarPorId(cliente.getId())).thenReturn(Optional.of(cliente));
+
+        var response = service.buscar(cliente.getId());
+
+        assertNotNull(response);
+        assertEquals(cliente.getId(), response.id());
+        assertEquals(cliente.getNome(), response.nome());
+        verify(repository, times(1)).buscarPorId(cliente.getId());
+    }
+
+    @Test
+    @DisplayName("deveLancarExcecaoQuandoClienteNaoEncontrado")
+    void deveLancarExcecaoQuandoClienteNaoEncontrado() {
+        var id = Instancio.create(java.util.UUID.class);
+
+        when(repository.buscarPorId(id)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(ResourceNotFoundException.class, () -> service.buscar(id));
+
+        assertEquals("Cliente não encontrado", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("deveDeletarClienteComSucesso")
+    void deveDeletarClienteComSucesso() {
+        var id = Instancio.create(java.util.UUID.class);
+
+        doNothing().when(repository).deletar(id);
+
+        service.deletar(id);
+
+        verify(repository, times(1)).deletar(id);
     }
 }
