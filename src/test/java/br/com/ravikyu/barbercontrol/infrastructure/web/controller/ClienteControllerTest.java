@@ -52,7 +52,7 @@ class ClienteControllerTest {
                                     "telefone": "11999999999"
                                 }
                                 """))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(response.id().toString()))
                 .andExpect(jsonPath("$.nome").value(response.nome()));
 
@@ -152,7 +152,7 @@ class ClienteControllerTest {
         doNothing().when(service).deletar(id);
 
         mockMvc.perform(delete("/clientes/{id}", id))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         verify(service, times(1)).deletar(id);
     }
