@@ -11,6 +11,7 @@ import java.util.UUID;
 public class Servico {
 
     private UUID id;
+    private UUID usuarioId;
     private String nome;
     private String descricao;
     private BigDecimal preco;

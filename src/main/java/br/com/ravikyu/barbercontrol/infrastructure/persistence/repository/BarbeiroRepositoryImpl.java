@@ -18,54 +18,53 @@ public class BarbeiroRepositoryImpl implements BarbeiroRepository {
 
     @Override
     public Barbeiro salvar(Barbeiro barbeiro) {
+        var entity = BarbeiroEntity.builder()
+                .id(barbeiro.getId())
+                .usuarioId(barbeiro.getUsuarioId())
+                .nome(barbeiro.getNome())
+                .especialidade(barbeiro.getEspecialidade())
+                .percentualComissao(barbeiro.getPercentualComissao())
+                .ativo(barbeiro.isAtivo())
+                .build();
 
-        BarbeiroEntity entity = new BarbeiroEntity(
-                barbeiro.getId(),
-                barbeiro.getNome(),
-                barbeiro.getEspecialidade(),
-                barbeiro.getPercentualComissao(),
-                barbeiro.isAtivo()
-        );
-
-        BarbeiroEntity salvo = jpaRepository.save(entity);
-
-        return new Barbeiro(
-                salvo.getId(),
-                salvo.getNome(),
-                salvo.getEspecialidade(),
-                salvo.getPercentualComissao(),
-                salvo.isAtivo()
-        );
+        var salvo = jpaRepository.save(entity);
+        return toDomain(salvo);
     }
 
     @Override
     public Optional<Barbeiro> buscarPorId(UUID id) {
-        return jpaRepository.findById(id)
-                .map(e -> new Barbeiro(
-                        e.getId(),
-                        e.getNome(),
-                        e.getEspecialidade(),
-                        e.getPercentualComissao(),
-                        e.isAtivo()
-                ));
+        return jpaRepository.findById(id).map(this::toDomain);
     }
 
     @Override
     public List<Barbeiro> listar() {
-        return jpaRepository.findAll()
-                .stream()
-                .map(e -> new Barbeiro(
-                        e.getId(),
-                        e.getNome(),
-                        e.getEspecialidade(),
-                        e.getPercentualComissao(),
-                        e.isAtivo()
-                ))
-                .toList();
+        return jpaRepository.findAll().stream().map(this::toDomain).toList();
     }
 
     @Override
     public void deletar(UUID id) {
         jpaRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Barbeiro> listarPorUsuario(UUID usuarioId) {
+        return jpaRepository.findByUsuarioId(usuarioId).stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public Optional<Barbeiro> buscarPorIdEUsuario(UUID id, UUID usuarioId) {
+        return jpaRepository.findByIdAndUsuarioId(id, usuarioId).map(this::toDomain);
+    }
+
+    private Barbeiro toDomain(BarbeiroEntity e) {
+        var barbeiro = new Barbeiro(
+                e.getId(),
+                e.getNome(),
+                e.getEspecialidade(),
+                e.getPercentualComissao(),
+                e.isAtivo()
+        );
+        barbeiro.setUsuarioId(e.getUsuarioId());
+        return barbeiro;
     }
 }

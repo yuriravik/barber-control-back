@@ -9,4 +9,6 @@ public interface UsuarioRepository {
     Usuario salvar(Usuario usuario);
 
     Optional<Usuario> buscarPorEmail(String email);
+
+    boolean existePorEmail(String email);
 }

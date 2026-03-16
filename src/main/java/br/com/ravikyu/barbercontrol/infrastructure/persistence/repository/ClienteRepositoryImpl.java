@@ -18,50 +18,46 @@ public class ClienteRepositoryImpl implements ClienteRepository {
 
     @Override
     public Cliente salvar(Cliente cliente) {
+        var entity = ClienteEntity.builder()
+                .id(cliente.getId())
+                .usuarioId(cliente.getUsuarioId())
+                .nome(cliente.getNome())
+                .telefone(cliente.getTelefone())
+                .email(cliente.getEmail())
+                .build();
 
-        ClienteEntity entity = new ClienteEntity(
-                cliente.getId(),
-                cliente.getNome(),
-                cliente.getTelefone(),
-                cliente.getEmail()
-        );
-
-        ClienteEntity salvo = jpaRepository.save(entity);
-
-        return new Cliente(
-                salvo.getId(),
-                salvo.getNome(),
-                salvo.getEmail(),
-                salvo.getTelefone()
-        );
+        var salvo = jpaRepository.save(entity);
+        return toDomain(salvo);
     }
 
     @Override
     public List<Cliente> listar() {
-        return jpaRepository.findAll()
-                .stream()
-                .map(e -> new Cliente(
-                        e.getId(),
-                        e.getNome(),
-                        e.getEmail(),
-                        e.getTelefone()
-                ))
-                .toList();
+        return jpaRepository.findAll().stream().map(this::toDomain).toList();
     }
 
     @Override
     public Optional<Cliente> buscarPorId(UUID id) {
-        return jpaRepository.findById(id)
-                .map(e -> new Cliente(
-                        e.getId(),
-                        e.getNome(),
-                        e.getEmail(),
-                        e.getTelefone()
-                ));
+        return jpaRepository.findById(id).map(this::toDomain);
     }
 
     @Override
     public void deletar(UUID id) {
         jpaRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Cliente> listarPorUsuario(UUID usuarioId) {
+        return jpaRepository.findByUsuarioId(usuarioId).stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public Optional<Cliente> buscarPorIdEUsuario(UUID id, UUID usuarioId) {
+        return jpaRepository.findByIdAndUsuarioId(id, usuarioId).map(this::toDomain);
+    }
+
+    private Cliente toDomain(ClienteEntity e) {
+        var cliente = new Cliente(e.getId(), e.getNome(), e.getEmail(), e.getTelefone());
+        cliente.setUsuarioId(e.getUsuarioId());
+        return cliente;
     }
 }

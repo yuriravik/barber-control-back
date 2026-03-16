@@ -11,6 +11,7 @@ import java.util.UUID;
 public class Barbeiro {
 
     private UUID id;
+    private UUID usuarioId;
     private String nome;
     private String especialidade;
     private BigDecimal percentualComissao;

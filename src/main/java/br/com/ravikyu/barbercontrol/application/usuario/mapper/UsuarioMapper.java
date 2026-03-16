@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.application.usuario.mapper;
 
+import br.com.ravikyu.barbercontrol.application.usuario.dto.UsuarioResponse;
 import br.com.ravikyu.barbercontrol.domain.model.Usuario;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.*;
@@ -18,5 +19,13 @@ public class UsuarioMapper {
 
     public static LoginResponse toResponse(String token) {
         return new LoginResponse(token, "Bearer");
+    }
+
+    public static UsuarioResponse toUsuarioResponse(Usuario usuario) {
+        return new UsuarioResponse(
+                usuario.getId(),
+                usuario.getEmail(),
+                usuario.getRole()
+        );
     }
 }

@@ -5,8 +5,10 @@ import br.com.ravikyu.barbercontrol.application.servico.dto.ServicoResponse;
 import br.com.ravikyu.barbercontrol.application.servico.service.ServicoService;
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
+import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,8 +30,19 @@ class ServicoServiceTest {
     @Mock
     private ServicoRepository repository;
 
+    @Mock
+    private UsuarioAutenticadoProvider usuarioProvider;
+
     @InjectMocks
     private ServicoService service;
+
+    private UUID usuarioId;
+
+    @BeforeEach
+    void setUp() {
+        usuarioId = UUID.randomUUID();
+        when(usuarioProvider.getUsuarioIdAutenticado()).thenReturn(usuarioId);
+    }
 
     @Test
     @DisplayName("deveCriarServicoComSucesso")
@@ -69,19 +83,19 @@ class ServicoServiceTest {
     void deveListarServicosComSucesso() {
         var servicos = Instancio.ofList(Servico.class).size(2).create();
 
-        when(repository.listar()).thenReturn(servicos);
+        when(repository.listarPorUsuario(usuarioId)).thenReturn(servicos);
 
         var response = service.listar();
 
         assertNotNull(response);
         assertEquals(2, response.size());
-        verify(repository, times(1)).listar();
+        verify(repository, times(1)).listarPorUsuario(usuarioId);
     }
 
     @Test
     @DisplayName("deveRetornarListaVaziaQuandoNaoHaServicos")
     void deveRetornarListaVaziaQuandoNaoHaServicos() {
-        when(repository.listar()).thenReturn(List.of());
+        when(repository.listarPorUsuario(usuarioId)).thenReturn(List.of());
 
         var response = service.listar();
 
@@ -94,21 +108,21 @@ class ServicoServiceTest {
     void deveBuscarServicoPorIdComSucesso() {
         var servico = Instancio.create(Servico.class);
 
-        when(repository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
+        when(repository.buscarPorIdEUsuario(servico.getId(), usuarioId)).thenReturn(Optional.of(servico));
 
         var response = service.buscar(servico.getId());
 
         assertNotNull(response);
         assertEquals(servico.getId(), response.id());
-        verify(repository, times(1)).buscarPorId(servico.getId());
+        verify(repository, times(1)).buscarPorIdEUsuario(servico.getId(), usuarioId);
     }
 
     @Test
     @DisplayName("deveLancarExcecaoQuandoServicoNaoEncontrado")
     void deveLancarExcecaoQuandoServicoNaoEncontrado() {
-        var id = Instancio.create(java.util.UUID.class);
+        var id = UUID.randomUUID();
 
-        when(repository.buscarPorId(id)).thenReturn(Optional.empty());
+        when(repository.buscarPorIdEUsuario(id, usuarioId)).thenReturn(Optional.empty());
 
         var ex = assertThrows(ResourceNotFoundException.class, () -> service.buscar(id));
 
@@ -118,12 +132,13 @@ class ServicoServiceTest {
     @Test
     @DisplayName("deveDeletarServicoComSucesso")
     void deveDeletarServicoComSucesso() {
-        var id = Instancio.create(java.util.UUID.class);
+        var servico = Instancio.create(Servico.class);
 
-        doNothing().when(repository).deletar(id);
+        when(repository.buscarPorIdEUsuario(servico.getId(), usuarioId)).thenReturn(Optional.of(servico));
+        doNothing().when(repository).deletar(servico.getId());
 
-        service.deletar(id);
+        service.deletar(servico.getId());
 
-        verify(repository, times(1)).deletar(id);
+        verify(repository, times(1)).deletar(servico.getId());
     }
 }

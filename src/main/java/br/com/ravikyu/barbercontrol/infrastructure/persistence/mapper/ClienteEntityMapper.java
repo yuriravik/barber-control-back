@@ -9,12 +9,13 @@ public class ClienteEntityMapper {
     private ClienteEntityMapper() {}
 
     public static ClienteEntity toEntity(Cliente cliente) {
-        return new ClienteEntity(
-                cliente.getId(),
-                cliente.getNome(),
-                cliente.getTelefone(),
-                cliente.getEmail()
-        );
+        return ClienteEntity.builder()
+                .id(cliente.getId())
+                .usuarioId(cliente.getUsuarioId())
+                .nome(cliente.getNome())
+                .telefone(cliente.getTelefone())
+                .email(cliente.getEmail())
+                .build();
     }
 
     public static ClienteResponse toDomain(ClienteEntity entity) {
