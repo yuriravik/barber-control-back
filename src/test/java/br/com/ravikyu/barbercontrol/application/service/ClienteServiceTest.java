@@ -30,15 +30,15 @@ class ClienteServiceTest {
         // Arrange
         CriarClienteRequest dto = new CriarClienteRequest(
                 "Yuri",
-                "85999999999",
-                "yuri@email.com"
+                "yuri@email.com",
+                "85999999999"
         );
 
         Cliente clienteSalvo = new Cliente(
                 UUID.randomUUID(),
                 dto.nome(),
-                dto.telefone(),
-                dto.email()
+                dto.email(),
+                dto.telefone()
         );
 
         when(repository.salvar(any())).thenReturn(clienteSalvo);

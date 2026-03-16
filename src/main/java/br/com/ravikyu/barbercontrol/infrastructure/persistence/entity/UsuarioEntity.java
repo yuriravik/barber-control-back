@@ -1,10 +1,17 @@
 package br.com.ravikyu.barbercontrol.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.util.UUID;
 
 @Entity
 @Table(name = "usuarios")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UsuarioEntity {
 
     @Id
@@ -18,7 +25,5 @@ public class UsuarioEntity {
     private String senha;
 
     @Column(nullable = false)
-    private String role; // ADMIN, BARBEIRO
-
-    // Getters e Setters
+    private String role;
 }

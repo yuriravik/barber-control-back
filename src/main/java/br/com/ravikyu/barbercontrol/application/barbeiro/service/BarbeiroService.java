@@ -1,8 +1,8 @@
-package br.com.ravikyu.barbercontrol.application.service;
+package br.com.ravikyu.barbercontrol.application.barbeiro.service;
 
-import br.com.ravikyu.barbercontrol.application.dto.barbeiro.BarbeiroResponse;
-import br.com.ravikyu.barbercontrol.application.dto.barbeiro.CriarBarbeiroRequest;
-import br.com.ravikyu.barbercontrol.application.mapper.BarbeiroMapper;
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.BarbeiroResponse;
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.CriarBarbeiroRequest;
+import br.com.ravikyu.barbercontrol.application.barbeiro.mapper.BarbeiroMapper;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
@@ -19,10 +19,8 @@ public class BarbeiroService {
     private final BarbeiroRepository repository;
 
     public BarbeiroResponse criar(CriarBarbeiroRequest dto) {
-
         var barbeiro = BarbeiroMapper.toDomain(dto);
         var salvo = repository.salvar(barbeiro);
-
         return BarbeiroMapper.toResponse(salvo);
     }
 
@@ -47,6 +45,4 @@ public class BarbeiroService {
 
         repository.salvar(atualizado);
     }
-
-
 }

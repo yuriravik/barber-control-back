@@ -1,16 +1,15 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
-import br.com.ravikyu.barbercontrol.application.dto.CriarServicoRequest;
-import br.com.ravikyu.barbercontrol.application.dto.ServicoResponse;
-import br.com.ravikyu.barbercontrol.application.mapper.ServicoMapper;
-import br.com.ravikyu.barbercontrol.application.service.ServicoService;
+import br.com.ravikyu.barbercontrol.application.servico.dto.CriarServicoRequest;
+import br.com.ravikyu.barbercontrol.application.servico.dto.ServicoResponse;
+import br.com.ravikyu.barbercontrol.application.servico.service.ServicoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-        import java.util.List;
+import java.util.List;
 import java.util.UUID;
-
-import static br.com.ravikyu.barbercontrol.application.mapper.ServicoMapper.*;
 
 @RestController
 @RequestMapping("/servicos")
@@ -20,25 +19,23 @@ public class ServicoController {
     private final ServicoService service;
 
     @PostMapping
-    public ServicoResponse criar(@RequestBody CriarServicoRequest dto) {
-        var servico = service.criar(toRequest(dto));
-        return toDomain(servico);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ServicoResponse criar(@RequestBody @Valid CriarServicoRequest dto) {
+        return service.criar(dto);
     }
 
     @GetMapping
     public List<ServicoResponse> listar() {
-        return service.listar()
-                .stream()
-                .map(ServicoMapper::toDomain)
-                .toList();
+        return service.listar();
     }
 
     @GetMapping("/{id}")
     public ServicoResponse buscar(@PathVariable UUID id) {
-        return toDomain(service.buscar(id));
+        return service.buscar(id);
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletar(@PathVariable UUID id) {
         service.deletar(id);
     }

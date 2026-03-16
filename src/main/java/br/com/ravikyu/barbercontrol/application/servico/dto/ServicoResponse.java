@@ -1,4 +1,4 @@
-package br.com.ravikyu.barbercontrol.application.dto;
+package br.com.ravikyu.barbercontrol.application.servico.dto;
 
 import java.math.BigDecimal;
 import java.util.UUID;

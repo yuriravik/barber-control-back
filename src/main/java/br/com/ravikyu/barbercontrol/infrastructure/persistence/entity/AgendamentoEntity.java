@@ -21,12 +21,21 @@ public class AgendamentoEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "cliente_id", nullable = false)
     private UUID clienteId;
+
+    @Column(name = "barbeiro_id", nullable = false)
     private UUID barbeiroId;
+
+    @Column(name = "servico_id", nullable = false)
     private UUID servicoId;
 
+    @Column(name = "data_hora_inicio", nullable = false)
     private LocalDateTime dataHoraInicio;
+
+    @Column(name = "data_hora_fim")
     private LocalDateTime dataHoraFim;
 
+    @Column(nullable = false)
     private String status;
 }

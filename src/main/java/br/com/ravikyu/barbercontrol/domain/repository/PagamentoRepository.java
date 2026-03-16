@@ -1,4 +1,18 @@
 package br.com.ravikyu.barbercontrol.domain.repository;
 
-public class PagamentoRepository {
+import br.com.ravikyu.barbercontrol.domain.model.Pagamento;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface PagamentoRepository {
+
+    Pagamento salvar(Pagamento pagamento);
+
+    Optional<Pagamento> buscarPorId(UUID id);
+
+    Optional<Pagamento> buscarPorAgendamentoId(UUID agendamentoId);
+
+    List<Pagamento> listar();
 }
