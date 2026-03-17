@@ -1,0 +1,812 @@
+{
+  "info": {
+    "name": "Barber Control API",
+    "_postman_id": "barber-control-api-collection",
+    "description": "Coleção completa da API Barber Control.\n\n## Como usar\n1. Cadastre um usuário em **Autenticação → Cadastrar Usuário**.\n2. Faça login em **Autenticação → Login** – o token JWT é salvo automaticamente na variável `{{token}}`.\n3. Todas as demais requisições já utilizam `Bearer {{token}}` no cabeçalho de autorização.\n\n## Variáveis de coleção\n| Nome | Valor padrão | Descrição |\n|------|--------------|-----------|\n| `baseUrl` | `http://localhost:8080` | URL base da API |\n| `token` | *(vazio)* | Preenchido automaticamente após o login |",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Cadastrar Usuário",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dono@barbearia.com\",\n  \"senha\": \"senha123\",\n  \"role\": \"ADMIN\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/cadastrar",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios", "cadastrar"]
+            },
+            "description": "Cadastra um novo usuário. Campos obrigatórios: `email`, `senha`, `role` (`ADMIN` ou `BARBEIRO`).\n\nRetorna 201 Created com `id`, `email` e `role`."
+          },
+          "response": [
+            {
+              "name": "201 – Usuário criado",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"email\": \"dono@barbearia.com\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            {
+              "name": "422 – Email já cadastrado",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 422,\n  \"error\": \"Business Error\",\n  \"message\": \"Email já cadastrado\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('token', json.token);",
+                  "    console.log('Token salvo:', json.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dono@barbearia.com\",\n  \"senha\": \"senha123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/usuarios/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["usuarios", "login"]
+            },
+            "description": "Autentica o usuário e retorna um JWT.\n\nO script de teste salva automaticamente o `token` na variável de coleção `{{token}}`, que é usada em todas as demais requisições."
+          },
+          "response": [
+            {
+              "name": "200 – Token gerado",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiJ9...\",\n  \"tipo\": \"Bearer\"\n}"
+            },
+            {
+              "name": "422 – Credenciais inválidas",
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 422,\n  \"error\": \"Business Error\",\n  \"message\": \"Credenciais inválidas\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "💈 Barbeiros",
+      "item": [
+        {
+          "name": "Criar Barbeiro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Carlos Silva\",\n  \"especialidade\": \"Corte e Barba\",\n  \"percentualComissao\": 40.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/barbeiros",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbeiros"]
+            },
+            "description": "Cria um novo barbeiro vinculado ao usuário autenticado.\n\nCampos obrigatórios: `nome`, `percentualComissao` (0–100).\n\nRetorna 201 Created."
+          },
+          "response": [
+            {
+              "name": "201 – Barbeiro criado",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n  \"nome\": \"Carlos Silva\",\n  \"especialidade\": \"Corte e Barba\",\n  \"percentualComissao\": 40.00,\n  \"ativo\": true\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar Barbeiros",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/barbeiros",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbeiros"]
+            },
+            "description": "Retorna a lista de barbeiros do usuário autenticado."
+          },
+          "response": [
+            {
+              "name": "200 – Lista de barbeiros",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440001\",\n    \"nome\": \"Carlos Silva\",\n    \"especialidade\": \"Corte e Barba\",\n    \"percentualComissao\": 40.00,\n    \"ativo\": true\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Desativar Barbeiro",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/barbeiros/{{barbeiroId}}/desativar",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbeiros", "{{barbeiroId}}", "desativar"]
+            },
+            "description": "Desativa (soft-delete) um barbeiro pelo ID. Retorna 204 No Content."
+          },
+          "response": [
+            {
+              "name": "204 – Desativado com sucesso",
+              "status": "No Content",
+              "code": 204
+            },
+            {
+              "name": "404 – Barbeiro não encontrado",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Barbeiro não encontrado\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "👤 Clientes",
+      "item": [
+        {
+          "name": "Criar Cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Souza\",\n  \"email\": \"joao@email.com\",\n  \"telefone\": \"(85) 99999-1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes"]
+            },
+            "description": "Cria um novo cliente vinculado ao usuário autenticado.\n\nCampos obrigatórios: `nome`, `email`.\n\nRetorna 201 Created."
+          },
+          "response": [
+            {
+              "name": "201 – Cliente criado",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"nome\": \"João Souza\",\n  \"email\": \"joao@email.com\",\n  \"telefone\": \"(85) 99999-1234\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar Clientes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes"]
+            },
+            "description": "Retorna a lista de clientes do usuário autenticado."
+          },
+          "response": [
+            {
+              "name": "200 – Lista de clientes",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n    \"nome\": \"João Souza\",\n    \"email\": \"joao@email.com\",\n    \"telefone\": \"(85) 99999-1234\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Buscar Cliente por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/clientes/{{clienteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "{{clienteId}}"]
+            },
+            "description": "Retorna um cliente pelo ID (somente se pertencer ao usuário autenticado)."
+          },
+          "response": [
+            {
+              "name": "200 – Cliente encontrado",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440002\",\n  \"nome\": \"João Souza\",\n  \"email\": \"joao@email.com\",\n  \"telefone\": \"(85) 99999-1234\"\n}"
+            },
+            {
+              "name": "404 – Cliente não encontrado",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Cliente não encontrado\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Deletar Cliente",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/clientes/{{clienteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "{{clienteId}}"]
+            },
+            "description": "Remove permanentemente um cliente (somente se pertencer ao usuário autenticado). Retorna 204 No Content."
+          },
+          "response": [
+            {
+              "name": "204 – Deletado com sucesso",
+              "status": "No Content",
+              "code": 204
+            },
+            {
+              "name": "404 – Cliente não encontrado",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Cliente não encontrado\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "✂️ Serviços",
+      "item": [
+        {
+          "name": "Criar Serviço",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Corte Simples\",\n  \"descricao\": \"Corte de cabelo básico\",\n  \"preco\": 35.00,\n  \"duracaoMinutos\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/servicos",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos"]
+            },
+            "description": "Cria um novo serviço vinculado ao usuário autenticado.\n\nCampos obrigatórios: `nome`, `preco` (> 0), `duracaoMinutos` (≥ 1).\n\nRetorna 201 Created."
+          },
+          "response": [
+            {
+              "name": "201 – Serviço criado",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n  \"nome\": \"Corte Simples\",\n  \"descricao\": \"Corte de cabelo básico\",\n  \"preco\": 35.00,\n  \"duracaoMinutos\": 30,\n  \"ativo\": true\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar Serviços",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/servicos",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos"]
+            },
+            "description": "Retorna a lista de serviços do usuário autenticado."
+          },
+          "response": [
+            {
+              "name": "200 – Lista de serviços",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n    \"nome\": \"Corte Simples\",\n    \"descricao\": \"Corte de cabelo básico\",\n    \"preco\": 35.00,\n    \"duracaoMinutos\": 30,\n    \"ativo\": true\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Buscar Serviço por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/servicos/{{servicoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "{{servicoId}}"]
+            },
+            "description": "Retorna um serviço pelo ID (somente se pertencer ao usuário autenticado)."
+          },
+          "response": [
+            {
+              "name": "200 – Serviço encontrado",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440003\",\n  \"nome\": \"Corte Simples\",\n  \"descricao\": \"Corte de cabelo básico\",\n  \"preco\": 35.00,\n  \"duracaoMinutos\": 30,\n  \"ativo\": true\n}"
+            },
+            {
+              "name": "404 – Serviço não encontrado",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Serviço não encontrado\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Deletar Serviço",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/servicos/{{servicoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "{{servicoId}}"]
+            },
+            "description": "Remove permanentemente um serviço (somente se pertencer ao usuário autenticado). Retorna 204 No Content."
+          },
+          "response": [
+            {
+              "name": "204 – Deletado com sucesso",
+              "status": "No Content",
+              "code": 204
+            },
+            {
+              "name": "404 – Serviço não encontrado",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Serviço não encontrado\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📅 Agendamentos",
+      "item": [
+        {
+          "name": "Criar Agendamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"barbeiroId\": \"{{barbeiroId}}\",\n  \"servicoId\": \"{{servicoId}}\",\n  \"dataHora\": \"2026-04-01T10:00:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agendamentos",
+              "host": ["{{baseUrl}}"],
+              "path": ["agendamentos"]
+            },
+            "description": "Cria um novo agendamento.\n\nCampos obrigatórios: `clienteId`, `barbeiroId`, `servicoId`, `dataHora` (formato ISO-8601, ex.: `2026-04-01T10:00:00`).\n\nRetorna 201 Created."
+          },
+          "response": [
+            {
+              "name": "201 – Agendamento criado",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n  \"cliente\": \"João Souza\",\n  \"barbeiro\": \"Carlos Silva\",\n  \"servico\": \"Corte Simples\",\n  \"dataHoraInicio\": \"2026-04-01T10:00:00\",\n  \"dataHoraFim\": \"2026-04-01T10:30:00\",\n  \"status\": \"AGENDADO\"\n}"
+            },
+            {
+              "name": "409 – Conflito de horário",
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 409,\n  \"error\": \"Scheduling Conflict\",\n  \"message\": \"Barbeiro já possui agendamento nesse horário\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar Agendamentos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/agendamentos",
+              "host": ["{{baseUrl}}"],
+              "path": ["agendamentos"]
+            },
+            "description": "Retorna a lista de todos os agendamentos."
+          },
+          "response": [
+            {
+              "name": "200 – Lista de agendamentos",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n    \"cliente\": \"João Souza\",\n    \"barbeiro\": \"Carlos Silva\",\n    \"servico\": \"Corte Simples\",\n    \"dataHoraInicio\": \"2026-04-01T10:00:00\",\n    \"dataHoraFim\": \"2026-04-01T10:30:00\",\n    \"status\": \"AGENDADO\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Buscar Agendamento por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/agendamentos/{{agendamentoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["agendamentos", "{{agendamentoId}}"]
+            },
+            "description": "Retorna um agendamento pelo ID."
+          },
+          "response": [
+            {
+              "name": "200 – Agendamento encontrado",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440004\",\n  \"cliente\": \"João Souza\",\n  \"barbeiro\": \"Carlos Silva\",\n  \"servico\": \"Corte Simples\",\n  \"dataHoraInicio\": \"2026-04-01T10:00:00\",\n  \"dataHoraFim\": \"2026-04-01T10:30:00\",\n  \"status\": \"AGENDADO\"\n}"
+            },
+            {
+              "name": "404 – Agendamento não encontrado",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Agendamento não encontrado\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Deletar Agendamento",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/agendamentos/{{agendamentoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["agendamentos", "{{agendamentoId}}"]
+            },
+            "description": "Remove permanentemente um agendamento. Retorna 204 No Content."
+          },
+          "response": [
+            {
+              "name": "204 – Deletado com sucesso",
+              "status": "No Content",
+              "code": 204
+            },
+            {
+              "name": "404 – Agendamento não encontrado",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Agendamento não encontrado\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "💳 Pagamentos",
+      "item": [
+        {
+          "name": "Registrar Pagamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agendamentoId\": \"{{agendamentoId}}\",\n  \"valor\": 35.00,\n  \"formaPagamento\": \"PIX\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pagamentos",
+              "host": ["{{baseUrl}}"],
+              "path": ["pagamentos"]
+            },
+            "description": "Registra o pagamento de um agendamento.\n\nCampos obrigatórios: `agendamentoId`, `valor`, `formaPagamento`.\n\nValores aceitos para `formaPagamento`: `PIX`, `CARTAO`, `DINHEIRO`.\n\nRetorna 201 Created."
+          },
+          "response": [
+            {
+              "name": "201 – Pagamento registrado",
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n  \"agendamentoId\": \"550e8400-e29b-41d4-a716-446655440004\",\n  \"valor\": 35.00,\n  \"formaPagamento\": \"PIX\",\n  \"status\": \"PAGO\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Listar Pagamentos",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/pagamentos",
+              "host": ["{{baseUrl}}"],
+              "path": ["pagamentos"]
+            },
+            "description": "Retorna a lista de todos os pagamentos."
+          },
+          "response": [
+            {
+              "name": "200 – Lista de pagamentos",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n    \"agendamentoId\": \"550e8400-e29b-41d4-a716-446655440004\",\n    \"valor\": 35.00,\n    \"formaPagamento\": \"PIX\",\n    \"status\": \"PAGO\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Buscar Pagamento por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/pagamentos/{{pagamentoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["pagamentos", "{{pagamentoId}}"]
+            },
+            "description": "Retorna um pagamento pelo ID."
+          },
+          "response": [
+            {
+              "name": "200 – Pagamento encontrado",
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"550e8400-e29b-41d4-a716-446655440005\",\n  \"agendamentoId\": \"550e8400-e29b-41d4-a716-446655440004\",\n  \"valor\": 35.00,\n  \"formaPagamento\": \"PIX\",\n  \"status\": \"PAGO\"\n}"
+            },
+            {
+              "name": "404 – Pagamento não encontrado",
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": 404,\n  \"error\": \"Not Found\",\n  \"message\": \"Pagamento não encontrado\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
