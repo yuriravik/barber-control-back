@@ -20,27 +20,27 @@ public class ClienteService {
 
     public ClienteResponse criar(CriarClienteRequest dto) {
         var cliente = ClienteMapper.toDomain(dto);
-        cliente.setUsuarioId(usuarioProvider.getUsuarioIdAutenticado());
+        cliente.setUsuarioId(usuarioProvider.getAdminUsuarioIdAutenticado());
         var salvo = repository.salvar(cliente);
         return ClienteMapper.toResponse(salvo);
     }
 
     public List<ClienteResponse> listar() {
-        return repository.listarPorUsuario(usuarioProvider.getUsuarioIdAutenticado())
+        return repository.listarPorUsuario(usuarioProvider.getAdminUsuarioIdAutenticado())
                 .stream()
                 .map(ClienteMapper::toResponse)
                 .toList();
     }
 
     public ClienteResponse buscar(UUID id) {
-        var usuarioId = usuarioProvider.getUsuarioIdAutenticado();
+        var usuarioId = usuarioProvider.getAdminUsuarioIdAutenticado();
         var cliente = repository.buscarPorIdEUsuario(id, usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
         return ClienteMapper.toResponse(cliente);
     }
 
     public void deletar(UUID id) {
-        var usuarioId = usuarioProvider.getUsuarioIdAutenticado();
+        var usuarioId = usuarioProvider.getAdminUsuarioIdAutenticado();
         repository.buscarPorIdEUsuario(id, usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
         repository.deletar(id);

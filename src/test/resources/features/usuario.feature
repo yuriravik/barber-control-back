@@ -37,3 +37,13 @@ Funcionalidade: Gerenciamento de Usuários
   Cenário: Não deve fazer login com usuário inexistente
     Quando eu faço login com email "inexistente@barbearia.com" e senha "senha123"
     Então o status da resposta deve ser 404
+
+  Cenário: Cadastrar barbeiro vinculado a um admin com sucesso
+    Dado que existe um admin cadastrado com email "adminsteps@barbearia.com" e senha "senha123" salvo como "admin"
+    Quando eu cadastro um barbeiro com email "barbeirosteps@barbearia.com", senha "senha123" e adminId "admin"
+    Então o status da resposta deve ser 201
+    E o campo "role" da resposta deve ser "BARBEIRO"
+
+  Cenário: Não deve cadastrar barbeiro sem adminId
+    Quando eu cadastro um barbeiro com email "barbeiro.semadmin@barbearia.com", senha "senha123" sem adminId
+    Então o status da resposta deve ser 422

@@ -1,0 +1,3 @@
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS admin_id UUID;
+
+ALTER TABLE usuarios ADD CONSTRAINT fk_usuarios_admin FOREIGN KEY (admin_id) REFERENCES usuarios(id) ON DELETE SET NULL;

@@ -14,6 +14,7 @@ public class Usuario {
     private String email;
     private String senha;
     private Role role;
+    private UUID adminId;
 
     public Usuario(String email, String senha, Role role) {
         validarEmail(email);

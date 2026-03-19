@@ -21,27 +21,27 @@ public class ServicoService {
 
     public ServicoResponse criar(CriarServicoRequest dto) {
         var servico = ServicoMapper.toDomain(dto);
-        servico.setUsuarioId(usuarioProvider.getUsuarioIdAutenticado());
+        servico.setUsuarioId(usuarioProvider.getAdminUsuarioIdAutenticado());
         var salvo = repository.salvar(servico);
         return ServicoMapper.toResponse(salvo);
     }
 
     public List<ServicoResponse> listar() {
-        return repository.listarPorUsuario(usuarioProvider.getUsuarioIdAutenticado())
+        return repository.listarPorUsuario(usuarioProvider.getAdminUsuarioIdAutenticado())
                 .stream()
                 .map(ServicoMapper::toResponse)
                 .toList();
     }
 
     public ServicoResponse buscar(UUID id) {
-        var usuarioId = usuarioProvider.getUsuarioIdAutenticado();
+        var usuarioId = usuarioProvider.getAdminUsuarioIdAutenticado();
         var servico = repository.buscarPorIdEUsuario(id, usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
         return ServicoMapper.toResponse(servico);
     }
 
     public void deletar(UUID id) {
-        var usuarioId = usuarioProvider.getUsuarioIdAutenticado();
+        var usuarioId = usuarioProvider.getAdminUsuarioIdAutenticado();
         repository.buscarPorIdEUsuario(id, usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
         repository.deletar(id);
