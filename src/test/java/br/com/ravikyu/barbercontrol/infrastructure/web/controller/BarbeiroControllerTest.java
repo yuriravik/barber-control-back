@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(BarbeiroController.class)
 @Import({SecurityConfig.class, JwtAuthenticationFilter.class})
-@WithMockUser
+@WithMockUser(roles = "ADMIN")
 class BarbeiroControllerTest {
 
     @Autowired

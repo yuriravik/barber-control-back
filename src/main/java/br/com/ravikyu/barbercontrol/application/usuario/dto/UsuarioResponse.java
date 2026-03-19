@@ -8,5 +8,6 @@ public record UsuarioResponse(
         UUID id,
         String email,
         Role role,
-        UUID adminId
+        UUID adminId,
+        UUID barbeiroId
 ) {}

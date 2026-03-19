@@ -78,6 +78,19 @@ public class BarbeiroSteps {
         scenarioContext.setLastCreatedId(UUID.fromString(root.get("id").asText()));
     }
 
+    @Given("que existe um barbeiro criado com nome {string}, especialidade {string} e comissão {int} salvo como {string}")
+    public void queExisteUmBarbeiroCriadoSalvoComChave(String nome, String especialidade, int comissao, String chave) throws Exception {
+        String url = "http://localhost:" + port + "/barbeiros";
+        String body = String.format(
+                "{\"nome\":\"%s\",\"especialidade\":\"%s\",\"percentualComissao\":%s}",
+                nome, especialidade, comissao);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
+        JsonNode root = objectMapper.readTree(response.getBody());
+        UUID barbeiroId = UUID.fromString(root.get("id").asText());
+        scenarioContext.setLastCreatedId(barbeiroId);
+        scenarioContext.putId(chave, barbeiroId);
+    }
+
     @When("eu listo os barbeiros")
     public void euListoOsBarbeiros() {
         String url = "http://localhost:" + port + "/barbeiros";

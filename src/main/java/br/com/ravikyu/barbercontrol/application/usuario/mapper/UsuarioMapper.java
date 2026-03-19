@@ -26,7 +26,8 @@ public class UsuarioMapper {
                 usuario.getId(),
                 usuario.getEmail(),
                 usuario.getRole(),
-                usuario.getAdminId()
+                usuario.getAdminId(),
+                usuario.getBarbeiroId()
         );
     }
 }

@@ -6,11 +6,14 @@ import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.domain.model.Servico;
+import br.com.ravikyu.barbercontrol.domain.model.Usuario;
+import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusAgendamento;
 import br.com.ravikyu.barbercontrol.domain.repository.AgendamentoRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
+import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +44,8 @@ class AgendamentoServiceTest {
     private ClienteRepository clienteRepository;
     @Mock
     private ServicoRepository servicoRepository;
+    @Mock
+    private UsuarioAutenticadoProvider usuarioProvider;
 
     @InjectMocks
     private AgendamentoService service;
@@ -76,6 +81,17 @@ class AgendamentoServiceTest {
                 .set(field(Agendamento.class, "dataHoraFim"), DATA_HORA.plusMinutes(30))
                 .set(field(Agendamento.class, "status"), StatusAgendamento.AGENDADO)
                 .create();
+    }
+
+    private Usuario adminValido(UUID adminId) {
+        var admin = Instancio.of(Usuario.class)
+                .generate(field(Usuario.class, "email"), gen -> gen.net().email())
+                .set(field(Usuario.class, "role"), Role.ADMIN)
+                .set(field(Usuario.class, "adminId"), null)
+                .set(field(Usuario.class, "barbeiroId"), null)
+                .create();
+        admin.setId(adminId);
+        return admin;
     }
 
     @Test
@@ -150,15 +166,20 @@ class AgendamentoServiceTest {
     }
 
     @Test
-    @DisplayName("deveListarAgendamentosComSucesso")
-    void deveListarAgendamentosComSucesso() {
-        var cliente = clienteValido();
+    @DisplayName("deveListarAgendamentosDoAdminComSucesso")
+    void deveListarAgendamentosDoAdminComSucesso() {
+        var adminId = UUID.randomUUID();
+        var admin = adminValido(adminId);
         var barbeiro = barbeiroValido();
+        barbeiro.setUsuarioId(adminId);
+        var cliente = clienteValido();
         var servico = servicoValido(30);
         var agendamentoId = UUID.randomUUID();
         var agendamento = agendamentoSalvo(agendamentoId, cliente.getId(), barbeiro.getId(), servico.getId());
 
-        when(repository.listar()).thenReturn(List.of(agendamento));
+        when(usuarioProvider.getUsuarioAutenticado()).thenReturn(admin);
+        when(barbeiroRepository.listarPorUsuario(adminId)).thenReturn(List.of(barbeiro));
+        when(repository.listarPorBarbeiroIds(List.of(barbeiro.getId()))).thenReturn(List.of(agendamento));
         when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
         when(clienteRepository.buscarPorId(cliente.getId())).thenReturn(Optional.of(cliente));
         when(barbeiroRepository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
@@ -172,9 +193,13 @@ class AgendamentoServiceTest {
     }
 
     @Test
-    @DisplayName("deveRetornarListaVaziaQuandoNaoHaAgendamentos")
-    void deveRetornarListaVaziaQuandoNaoHaAgendamentos() {
-        when(repository.listar()).thenReturn(List.of());
+    @DisplayName("deveRetornarListaVaziaParaAdminSemBarbeiros")
+    void deveRetornarListaVaziaParaAdminSemBarbeiros() {
+        var adminId = UUID.randomUUID();
+        var admin = adminValido(adminId);
+
+        when(usuarioProvider.getUsuarioAutenticado()).thenReturn(admin);
+        when(barbeiroRepository.listarPorUsuario(adminId)).thenReturn(List.of());
 
         var response = service.listar();
 
@@ -280,3 +305,4 @@ class AgendamentoServiceTest {
         verify(repository, times(1)).deletar(id);
     }
 }
+
