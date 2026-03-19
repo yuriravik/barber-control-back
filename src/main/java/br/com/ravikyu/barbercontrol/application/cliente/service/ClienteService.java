@@ -3,6 +3,7 @@ package br.com.ravikyu.barbercontrol.application.cliente.service;
 import br.com.ravikyu.barbercontrol.application.cliente.dto.*;
 import br.com.ravikyu.barbercontrol.application.cliente.mapper.ClienteMapper;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
+import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,29 +16,33 @@ import java.util.UUID;
 public class ClienteService {
 
     private final ClienteRepository repository;
+    private final UsuarioAutenticadoProvider usuarioProvider;
 
     public ClienteResponse criar(CriarClienteRequest dto) {
-
         var cliente = ClienteMapper.toDomain(dto);
+        cliente.setUsuarioId(usuarioProvider.getUsuarioIdAutenticado());
         var salvo = repository.salvar(cliente);
-
         return ClienteMapper.toResponse(salvo);
     }
 
     public List<ClienteResponse> listar() {
-        return repository.listar()
+        return repository.listarPorUsuario(usuarioProvider.getUsuarioIdAutenticado())
                 .stream()
                 .map(ClienteMapper::toResponse)
                 .toList();
     }
 
     public ClienteResponse buscar(UUID id) {
-        var cliente = repository.buscarPorId(id)
+        var usuarioId = usuarioProvider.getUsuarioIdAutenticado();
+        var cliente = repository.buscarPorIdEUsuario(id, usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
         return ClienteMapper.toResponse(cliente);
     }
 
     public void deletar(UUID id) {
+        var usuarioId = usuarioProvider.getUsuarioIdAutenticado();
+        repository.buscarPorIdEUsuario(id, usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
         repository.deletar(id);
     }
 }

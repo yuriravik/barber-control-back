@@ -15,4 +15,8 @@ public interface ServicoRepository {
     List<Servico> listar();
 
     void deletar(UUID id);
+
+    List<Servico> listarPorUsuario(UUID usuarioId);
+
+    Optional<Servico> buscarPorIdEUsuario(UUID id, UUID usuarioId);
 }

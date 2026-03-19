@@ -19,6 +19,9 @@ public class BarbeiroEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "usuario_id")
+    private UUID usuarioId;
+
     @Column(nullable = false)
     private String nome;
 

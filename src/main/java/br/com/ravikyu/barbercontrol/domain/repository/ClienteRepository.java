@@ -15,4 +15,8 @@ public interface ClienteRepository {
     Optional<Cliente> buscarPorId(UUID id);
 
     void deletar(UUID id);
+
+    List<Cliente> listarPorUsuario(UUID usuarioId);
+
+    Optional<Cliente> buscarPorIdEUsuario(UUID id, UUID usuarioId);
 }

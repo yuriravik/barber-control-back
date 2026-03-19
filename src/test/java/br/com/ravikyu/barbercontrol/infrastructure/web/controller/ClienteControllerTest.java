@@ -2,6 +2,10 @@ package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
 import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
 import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
+import br.com.ravikyu.barbercontrol.infrastructure.security.CustomUserDetailsService;
+import br.com.ravikyu.barbercontrol.infrastructure.security.JwtAuthenticationFilter;
+import br.com.ravikyu.barbercontrol.infrastructure.security.SecurityConfig;
+import br.com.ravikyu.barbercontrol.infrastructure.security.JwtTokenProvider;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.instancio.Instancio;
@@ -9,7 +13,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -19,6 +25,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ClienteController.class)
+@Import({SecurityConfig.class, JwtAuthenticationFilter.class})
+@WithMockUser
 class ClienteControllerTest {
 
     @Autowired
@@ -29,6 +37,12 @@ class ClienteControllerTest {
 
     @MockitoBean
     private ClienteService service;
+
+    @MockitoBean
+    private JwtTokenProvider jwtTokenProvider;
+
+    @MockitoBean
+    private CustomUserDetailsService customUserDetailsService;
 
     private ClienteResponse responseValido() {
         return Instancio.of(ClienteResponse.class)

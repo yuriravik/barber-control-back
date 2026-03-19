@@ -4,8 +4,10 @@ import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
 import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
+import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.instancio.Select.field;
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,8 +29,19 @@ class ClienteServiceTest {
     @Mock
     private ClienteRepository repository;
 
+    @Mock
+    private UsuarioAutenticadoProvider usuarioProvider;
+
     @InjectMocks
     private ClienteService service;
+
+    private UUID usuarioId;
+
+    @BeforeEach
+    void setUp() {
+        usuarioId = UUID.randomUUID();
+        when(usuarioProvider.getUsuarioIdAutenticado()).thenReturn(usuarioId);
+    }
 
     private Cliente clienteValido() {
         return Instancio.of(Cliente.class)
@@ -85,19 +99,19 @@ class ClienteServiceTest {
                 .generate(field(Cliente.class, "email"), gen -> gen.net().email())
                 .create();
 
-        when(repository.listar()).thenReturn(clientes);
+        when(repository.listarPorUsuario(usuarioId)).thenReturn(clientes);
 
         var response = service.listar();
 
         assertNotNull(response);
         assertEquals(2, response.size());
-        verify(repository, times(1)).listar();
+        verify(repository, times(1)).listarPorUsuario(usuarioId);
     }
 
     @Test
     @DisplayName("deveRetornarListaVaziaQuandoNaoHaClientes")
     void deveRetornarListaVaziaQuandoNaoHaClientes() {
-        when(repository.listar()).thenReturn(List.of());
+        when(repository.listarPorUsuario(usuarioId)).thenReturn(List.of());
 
         var response = service.listar();
 
@@ -110,22 +124,22 @@ class ClienteServiceTest {
     void deveBuscarClientePorIdComSucesso() {
         var cliente = clienteValido();
 
-        when(repository.buscarPorId(cliente.getId())).thenReturn(Optional.of(cliente));
+        when(repository.buscarPorIdEUsuario(cliente.getId(), usuarioId)).thenReturn(Optional.of(cliente));
 
         var response = service.buscar(cliente.getId());
 
         assertNotNull(response);
         assertEquals(cliente.getId(), response.id());
         assertEquals(cliente.getNome(), response.nome());
-        verify(repository, times(1)).buscarPorId(cliente.getId());
+        verify(repository, times(1)).buscarPorIdEUsuario(cliente.getId(), usuarioId);
     }
 
     @Test
     @DisplayName("deveLancarExcecaoQuandoClienteNaoEncontrado")
     void deveLancarExcecaoQuandoClienteNaoEncontrado() {
-        var id = Instancio.create(java.util.UUID.class);
+        var id = UUID.randomUUID();
 
-        when(repository.buscarPorId(id)).thenReturn(Optional.empty());
+        when(repository.buscarPorIdEUsuario(id, usuarioId)).thenReturn(Optional.empty());
 
         var ex = assertThrows(ResourceNotFoundException.class, () -> service.buscar(id));
 
@@ -135,12 +149,13 @@ class ClienteServiceTest {
     @Test
     @DisplayName("deveDeletarClienteComSucesso")
     void deveDeletarClienteComSucesso() {
-        var id = Instancio.create(java.util.UUID.class);
+        var cliente = clienteValido();
 
-        doNothing().when(repository).deletar(id);
+        when(repository.buscarPorIdEUsuario(cliente.getId(), usuarioId)).thenReturn(Optional.of(cliente));
+        doNothing().when(repository).deletar(cliente.getId());
 
-        service.deletar(id);
+        service.deletar(cliente.getId());
 
-        verify(repository, times(1)).deletar(id);
+        verify(repository, times(1)).deletar(cliente.getId());
     }
 }

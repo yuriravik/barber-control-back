@@ -4,8 +4,10 @@ import br.com.ravikyu.barbercontrol.application.barbeiro.dto.CriarBarbeiroReques
 import br.com.ravikyu.barbercontrol.application.barbeiro.service.BarbeiroService;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
+import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import org.instancio.Instancio;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,8 +30,19 @@ class BarbeiroServiceTest {
     @Mock
     private BarbeiroRepository repository;
 
+    @Mock
+    private UsuarioAutenticadoProvider usuarioProvider;
+
     @InjectMocks
     private BarbeiroService service;
+
+    private UUID usuarioId;
+
+    @BeforeEach
+    void setUp() {
+        usuarioId = UUID.randomUUID();
+        when(usuarioProvider.getUsuarioIdAutenticado()).thenReturn(usuarioId);
+    }
 
     private Barbeiro barbeiroValido() {
         return Instancio.of(Barbeiro.class)
@@ -64,19 +77,19 @@ class BarbeiroServiceTest {
                         gen -> gen.math().bigDecimal().scale(2).range(BigDecimal.ONE, new BigDecimal("99")))
                 .create();
 
-        when(repository.listar()).thenReturn(barbeiros);
+        when(repository.listarPorUsuario(usuarioId)).thenReturn(barbeiros);
 
         var response = service.listar();
 
         assertNotNull(response);
         assertEquals(2, response.size());
-        verify(repository, times(1)).listar();
+        verify(repository, times(1)).listarPorUsuario(usuarioId);
     }
 
     @Test
     @DisplayName("deveRetornarListaVaziaQuandoNaoHaBarbeiros")
     void deveRetornarListaVaziaQuandoNaoHaBarbeiros() {
-        when(repository.listar()).thenReturn(List.of());
+        when(repository.listarPorUsuario(usuarioId)).thenReturn(List.of());
 
         var response = service.listar();
 
@@ -89,12 +102,12 @@ class BarbeiroServiceTest {
     void deveDesativarBarbeiroComSucesso() {
         var barbeiro = barbeiroValido();
 
-        when(repository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
+        when(repository.buscarPorIdEUsuario(barbeiro.getId(), usuarioId)).thenReturn(Optional.of(barbeiro));
         when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
 
         service.desativar(barbeiro.getId());
 
-        verify(repository, times(1)).buscarPorId(barbeiro.getId());
+        verify(repository, times(1)).buscarPorIdEUsuario(barbeiro.getId(), usuarioId);
         verify(repository, times(1)).salvar(argThat(b -> !b.isAtivo()));
     }
 
@@ -103,7 +116,7 @@ class BarbeiroServiceTest {
     void deveLancarExcecaoAoDesativarBarbeiroNaoEncontrado() {
         var id = UUID.randomUUID();
 
-        when(repository.buscarPorId(id)).thenReturn(Optional.empty());
+        when(repository.buscarPorIdEUsuario(id, usuarioId)).thenReturn(Optional.empty());
 
         var ex = assertThrows(ResourceNotFoundException.class, () -> service.desativar(id));
 
@@ -116,7 +129,7 @@ class BarbeiroServiceTest {
     void deveManterDadosBarbeiroAoDesativar() {
         var barbeiro = barbeiroValido();
 
-        when(repository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
+        when(repository.buscarPorIdEUsuario(barbeiro.getId(), usuarioId)).thenReturn(Optional.of(barbeiro));
         when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
 
         service.desativar(barbeiro.getId());
