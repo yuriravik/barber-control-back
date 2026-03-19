@@ -23,16 +23,16 @@ public class UsuarioAutenticadoProvider {
     }
 
     /**
-     * Returns the admin's user ID for BARBEIRO users (resolved from their linked adminId),
+     * Returns the admin's user ID for BARBEIRO and SECRETARIA users (resolved from their linked adminId),
      * or the user's own ID for ADMIN users. This is used to scope data access so that
-     * a BARBEIRO user can access the clientes and serviços registered by their linked admin.
+     * a BARBEIRO or SECRETARIA user can access the clientes and serviços registered by their linked admin.
      */
     public UUID getAdminUsuarioIdAutenticado() {
         var email = SecurityContextHolder.getContext().getAuthentication().getName();
         var usuario = usuarioRepository.buscarPorEmail(email)
                 .orElseThrow(() -> new IllegalStateException("Usuário autenticado não encontrado"));
 
-        if (usuario.getRole() == Role.BARBEIRO && usuario.getAdminId() != null) {
+        if ((usuario.getRole() == Role.BARBEIRO || usuario.getRole() == Role.SECRETARIA) && usuario.getAdminId() != null) {
             return usuario.getAdminId();
         }
         return usuario.getId();

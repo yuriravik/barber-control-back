@@ -51,9 +51,10 @@ class EnumsDtoTest {
     void deveConterTodasAsRoles() {
         var values = Role.values();
 
-        assertEquals(2, values.length);
+        assertEquals(3, values.length);
         assertEquals(Role.ADMIN, Role.valueOf("ADMIN"));
         assertEquals(Role.BARBEIRO, Role.valueOf("BARBEIRO"));
+        assertEquals(Role.SECRETARIA, Role.valueOf("SECRETARIA"));
     }
 
     @Test
