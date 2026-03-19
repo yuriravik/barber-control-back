@@ -28,9 +28,9 @@ public class UsuarioService {
             throw new BusinessException("Email já cadastrado");
         }
 
-        if (Role.BARBEIRO.name().equalsIgnoreCase(dto.role())) {
+        if (Role.BARBEIRO.name().equalsIgnoreCase(dto.role()) || Role.SECRETARIA.name().equalsIgnoreCase(dto.role())) {
             if (dto.adminId() == null) {
-                throw new BusinessException("adminId é obrigatório para usuários com role BARBEIRO");
+                throw new BusinessException("adminId é obrigatório para usuários com role " + dto.role().toUpperCase());
             }
             var admin = repository.buscarPorId(dto.adminId())
                     .orElseThrow(() -> new ResourceNotFoundException("Administrador não encontrado"));

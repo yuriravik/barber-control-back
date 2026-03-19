@@ -16,7 +16,7 @@ public record CadastroRequest(
         String senha,
 
         @NotBlank(message = "Role é obrigatória")
-        @Pattern(regexp = "ADMIN|BARBEIRO", message = "Role inválida. Valores aceitos: ADMIN, BARBEIRO")
+        @Pattern(regexp = "ADMIN|BARBEIRO|SECRETARIA", message = "Role inválida. Valores aceitos: ADMIN, BARBEIRO, SECRETARIA")
         String role,
 
         UUID adminId

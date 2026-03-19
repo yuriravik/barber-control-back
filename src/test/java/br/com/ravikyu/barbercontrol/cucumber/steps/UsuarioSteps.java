@@ -98,6 +98,31 @@ public class UsuarioSteps {
         scenarioContext.setLastResponseBody(response.getBody());
     }
 
+    @When("eu cadastro uma secretaria com email {string}, senha {string} e adminId {string}")
+    public void euCadastroUmaSecretariaComAdminId(String email, String senha, String adminIdKey) {
+        String url = "http://localhost:" + port + "/usuarios/cadastrar";
+        String adminId = scenarioContext.getId(adminIdKey).toString();
+        String body = String.format(
+                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"SECRETARIA\",\"adminId\":\"%s\"}",
+                email, senha, adminId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
+        scenarioContext.setLastStatusCode(response.getStatusCode().value());
+        scenarioContext.setLastResponseBody(response.getBody());
+    }
+
+    @When("eu cadastro uma secretaria com email {string}, senha {string} sem adminId")
+    public void euCadastroUmaSecretariaSemAdminId(String email, String senha) {
+        String url = "http://localhost:" + port + "/usuarios/cadastrar";
+        String body = String.format("{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"SECRETARIA\"}", email, senha);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
+        scenarioContext.setLastStatusCode(response.getStatusCode().value());
+        scenarioContext.setLastResponseBody(response.getBody());
+    }
+
     @When("eu faço login com email {string} e senha {string}")
     public void euFacoLogin(String email, String senha) {
         String url = "http://localhost:" + port + "/usuarios/login";

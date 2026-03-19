@@ -47,3 +47,13 @@ Funcionalidade: Gerenciamento de Usuários
   Cenário: Não deve cadastrar barbeiro sem adminId
     Quando eu cadastro um barbeiro com email "barbeiro.semadmin@barbearia.com", senha "senha123" sem adminId
     Então o status da resposta deve ser 422
+
+  Cenário: Cadastrar secretaria vinculada a um admin com sucesso
+    Dado que existe um admin cadastrado com email "admin.sec@barbearia.com" e senha "senha123" salvo como "adminSec"
+    Quando eu cadastro uma secretaria com email "secretaria@barbearia.com", senha "senha123" e adminId "adminSec"
+    Então o status da resposta deve ser 201
+    E o campo "role" da resposta deve ser "SECRETARIA"
+
+  Cenário: Não deve cadastrar secretaria sem adminId
+    Quando eu cadastro uma secretaria com email "secretaria.semadmin@barbearia.com", senha "senha123" sem adminId
+    Então o status da resposta deve ser 422
