@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Given;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 public class AuthSteps {
 
@@ -23,7 +23,8 @@ public class AuthSteps {
     @LocalServerPort
     private int port;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private TestRestTemplate restTemplate;
 
     @Given("que estou autenticado como {string} com senha {string} e role {string}")
     public void queEstouAutenticado(String email, String senha, String role) throws Exception {
@@ -32,11 +33,7 @@ public class AuthSteps {
 
         String registerUrl = "http://localhost:" + port + "/usuarios/cadastrar";
         String registerBody = String.format("{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"%s\"}", email, senha, role);
-        try {
-            restTemplate.postForEntity(registerUrl, new HttpEntity<>(registerBody, headers), String.class);
-        } catch (Exception ignored) {
-            // User may already exist; proceed to login
-        }
+        restTemplate.postForEntity(registerUrl, new HttpEntity<>(registerBody, headers), String.class);
 
         String loginUrl = "http://localhost:" + port + "/usuarios/login";
         String loginBody = String.format("{\"email\":\"%s\",\"senha\":\"%s\"}", email, senha);

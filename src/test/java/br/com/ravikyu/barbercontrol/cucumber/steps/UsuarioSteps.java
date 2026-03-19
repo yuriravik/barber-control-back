@@ -4,13 +4,12 @@ import br.com.ravikyu.barbercontrol.cucumber.ScenarioContext;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
 
 public class UsuarioSteps {
 
@@ -20,7 +19,8 @@ public class UsuarioSteps {
     @LocalServerPort
     private int port;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private TestRestTemplate restTemplate;
 
     @When("eu cadastro um usuário com email {string}, senha {string} e role {string}")
     public void euCadastroUmUsuario(String email, String senha, String role) {
@@ -28,14 +28,9 @@ public class UsuarioSteps {
         String body = String.format("{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"%s\"}", email, senha, role);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
-            scenarioContext.setLastStatusCode(response.getStatusCode().value());
-            scenarioContext.setLastResponseBody(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            scenarioContext.setLastStatusCode(e.getStatusCode().value());
-            scenarioContext.setLastResponseBody(e.getResponseBodyAsString());
-        }
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
+        scenarioContext.setLastStatusCode(response.getStatusCode().value());
+        scenarioContext.setLastResponseBody(response.getBody());
     }
 
     @Given("que existe um usuário cadastrado com email {string} e senha {string} e role {string}")
@@ -49,13 +44,8 @@ public class UsuarioSteps {
         String body = String.format("{\"email\":\"%s\",\"senha\":\"%s\"}", email, senha);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
-            scenarioContext.setLastStatusCode(response.getStatusCode().value());
-            scenarioContext.setLastResponseBody(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            scenarioContext.setLastStatusCode(e.getStatusCode().value());
-            scenarioContext.setLastResponseBody(e.getResponseBodyAsString());
-        }
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
+        scenarioContext.setLastStatusCode(response.getStatusCode().value());
+        scenarioContext.setLastResponseBody(response.getBody());
     }
 }

@@ -6,14 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
+
 
 import java.util.UUID;
 
@@ -28,7 +28,8 @@ public class AgendamentoSteps {
     @LocalServerPort
     private int port;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private TestRestTemplate restTemplate;
 
     private HttpHeaders headersWithJwt() {
         HttpHeaders headers = new HttpHeaders();
@@ -46,8 +47,8 @@ public class AgendamentoSteps {
         scenarioContext.putId("agendClienteId", UUID.fromString(root.get("id").asText()));
     }
 
-    @Given("que existe um barbeiro de agendamento com nome {string}, especialidade {string} e comissão {double}")
-    public void queExisteUmBarbeiroDeAgendamento(String nome, String especialidade, double comissao) throws Exception {
+    @Given("que existe um barbeiro de agendamento com nome {string}, especialidade {string} e comissão {int}")
+    public void queExisteUmBarbeiroDeAgendamento(String nome, String especialidade, int comissao) throws Exception {
         String url = "http://localhost:" + port + "/barbeiros";
         String body = String.format(
                 "{\"nome\":\"%s\",\"especialidade\":\"%s\",\"percentualComissao\":%s}",
@@ -57,10 +58,10 @@ public class AgendamentoSteps {
         scenarioContext.putId("agendBarbeiroId", UUID.fromString(root.get("id").asText()));
     }
 
-    @Given("que existe um serviço de agendamento com nome {string}, preço {double} e duração {int} minutos")
-    public void queExisteUmServicoDeAgendamento(String nome, double preco, int duracao) throws Exception {
+    @Given("que existe um serviço de agendamento com nome {string}, preço {int} e duração {int} minutos")
+    public void queExisteUmServicoDeAgendamento(String nome, int preco, int duracao) throws Exception {
         String url = "http://localhost:" + port + "/servicos";
-        String body = String.format("{\"nome\":\"%s\",\"preco\":%s,\"duracaoMinutos\":%d}", nome, preco, duracao);
+        String body = String.format("{\"nome\":\"%s\",\"descricao\":\"\",\"preco\":%s,\"duracaoMinutos\":%d}", nome, preco, duracao);
         ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
         JsonNode root = objectMapper.readTree(response.getBody());
         scenarioContext.putId("agendServicoId", UUID.fromString(root.get("id").asText()));
@@ -70,26 +71,21 @@ public class AgendamentoSteps {
     public void euCrioUmAgendamento(String data) {
         String url = "http://localhost:" + port + "/agendamentos";
         String body = String.format(
-                "{\"clienteId\":\"%s\",\"barbeiroId\":\"%s\",\"servicoId\":\"%s\",\"dataHoraInicio\":\"%s\"}",
+                "{\"clienteId\":\"%s\",\"barbeiroId\":\"%s\",\"servicoId\":\"%s\",\"dataHora\":\"%s\"}",
                 scenarioContext.getId("agendClienteId"),
                 scenarioContext.getId("agendBarbeiroId"),
                 scenarioContext.getId("agendServicoId"),
                 data);
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
             scenarioContext.setLastStatusCode(response.getStatusCode().value());
             scenarioContext.setLastResponseBody(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            scenarioContext.setLastStatusCode(e.getStatusCode().value());
-            scenarioContext.setLastResponseBody(e.getResponseBodyAsString());
-        }
     }
 
     @Given("que existe um agendamento criado para o cliente, barbeiro e serviço em {string}")
     public void queExisteUmAgendamentoCriado(String data) throws Exception {
         String url = "http://localhost:" + port + "/agendamentos";
         String body = String.format(
-                "{\"clienteId\":\"%s\",\"barbeiroId\":\"%s\",\"servicoId\":\"%s\",\"dataHoraInicio\":\"%s\"}",
+                "{\"clienteId\":\"%s\",\"barbeiroId\":\"%s\",\"servicoId\":\"%s\",\"dataHora\":\"%s\"}",
                 scenarioContext.getId("agendClienteId"),
                 scenarioContext.getId("agendBarbeiroId"),
                 scenarioContext.getId("agendServicoId"),
@@ -102,89 +98,59 @@ public class AgendamentoSteps {
     @When("eu listo os agendamentos")
     public void euListoOsAgendamentos() {
         String url = "http://localhost:" + port + "/agendamentos";
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headersWithJwt()), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headersWithJwt()), String.class);
             scenarioContext.setLastStatusCode(response.getStatusCode().value());
             scenarioContext.setLastResponseBody(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            scenarioContext.setLastStatusCode(e.getStatusCode().value());
-            scenarioContext.setLastResponseBody(e.getResponseBodyAsString());
-        }
     }
 
     @When("eu busco o agendamento pelo ID criado")
     public void euBuscoOAgendamentoPeloIdCriado() {
         String url = "http://localhost:" + port + "/agendamentos/" + scenarioContext.getLastCreatedId();
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headersWithJwt()), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headersWithJwt()), String.class);
             scenarioContext.setLastStatusCode(response.getStatusCode().value());
             scenarioContext.setLastResponseBody(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            scenarioContext.setLastStatusCode(e.getStatusCode().value());
-            scenarioContext.setLastResponseBody(e.getResponseBodyAsString());
-        }
     }
 
     @When("eu busco o agendamento com ID {string}")
     public void euBuscoOAgendamentoComId(String id) {
         String url = "http://localhost:" + port + "/agendamentos/" + id;
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headersWithJwt()), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headersWithJwt()), String.class);
             scenarioContext.setLastStatusCode(response.getStatusCode().value());
             scenarioContext.setLastResponseBody(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            scenarioContext.setLastStatusCode(e.getStatusCode().value());
-            scenarioContext.setLastResponseBody(e.getResponseBodyAsString());
-        }
     }
 
     @When("eu deleto o agendamento pelo ID criado")
     public void euDeletoOAgendamentoPeloIdCriado() {
         String url = "http://localhost:" + port + "/agendamentos/" + scenarioContext.getLastCreatedId();
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headersWithJwt()), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headersWithJwt()), String.class);
             scenarioContext.setLastStatusCode(response.getStatusCode().value());
             scenarioContext.setLastResponseBody(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            scenarioContext.setLastStatusCode(e.getStatusCode().value());
-            scenarioContext.setLastResponseBody(e.getResponseBodyAsString());
-        }
     }
 
     @When("eu crio um agendamento sem clienteId, com o barbeiro e serviço criados e data {string}")
     public void euCrioUmAgendamentoSemClienteId(String data) {
         String url = "http://localhost:" + port + "/agendamentos";
         String body = String.format(
-                "{\"clienteId\":null,\"barbeiroId\":\"%s\",\"servicoId\":\"%s\",\"dataHoraInicio\":\"%s\"}",
+                "{\"clienteId\":null,\"barbeiroId\":\"%s\",\"servicoId\":\"%s\",\"dataHora\":\"%s\"}",
                 scenarioContext.getId("agendBarbeiroId"),
                 scenarioContext.getId("agendServicoId"),
                 data);
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
             scenarioContext.setLastStatusCode(response.getStatusCode().value());
             scenarioContext.setLastResponseBody(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            scenarioContext.setLastStatusCode(e.getStatusCode().value());
-            scenarioContext.setLastResponseBody(e.getResponseBodyAsString());
-        }
     }
 
     @When("eu crio um agendamento para o cliente e barbeiro criados com servicoId {string} e data {string}")
     public void euCrioUmAgendamentoComServicoId(String servicoId, String data) {
         String url = "http://localhost:" + port + "/agendamentos";
         String body = String.format(
-                "{\"clienteId\":\"%s\",\"barbeiroId\":\"%s\",\"servicoId\":\"%s\",\"dataHoraInicio\":\"%s\"}",
+                "{\"clienteId\":\"%s\",\"barbeiroId\":\"%s\",\"servicoId\":\"%s\",\"dataHora\":\"%s\"}",
                 scenarioContext.getId("agendClienteId"),
                 scenarioContext.getId("agendBarbeiroId"),
                 servicoId,
                 data);
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
             scenarioContext.setLastStatusCode(response.getStatusCode().value());
             scenarioContext.setLastResponseBody(response.getBody());
-        } catch (HttpStatusCodeException e) {
-            scenarioContext.setLastStatusCode(e.getStatusCode().value());
-            scenarioContext.setLastResponseBody(e.getResponseBodyAsString());
-        }
     }
 }

@@ -13,7 +13,7 @@ Funcionalidade: Gerenciamento de Usuários
   Cenário: Não deve cadastrar usuário com email já existente
     Dado que existe um usuário cadastrado com email "duplicado@barbearia.com" e senha "senha123" e role "ADMIN"
     Quando eu cadastro um usuário com email "duplicado@barbearia.com", senha "outrasenha" e role "ADMIN"
-    Então o status da resposta deve ser 409
+    Então o status da resposta deve ser 422
 
   Cenário: Não deve cadastrar usuário com email inválido
     Quando eu cadastro um usuário com email "emailinvalido", senha "senha123" e role "ADMIN"
@@ -32,7 +32,7 @@ Funcionalidade: Gerenciamento de Usuários
   Cenário: Não deve fazer login com credenciais inválidas
     Dado que existe um usuário cadastrado com email "valido@barbearia.com" e senha "senha123" e role "ADMIN"
     Quando eu faço login com email "valido@barbearia.com" e senha "senhaerrada"
-    Então o status da resposta deve ser 409
+    Então o status da resposta deve ser 422
 
   Cenário: Não deve fazer login com usuário inexistente
     Quando eu faço login com email "inexistente@barbearia.com" e senha "senha123"

@@ -8,8 +8,8 @@ Funcionalidade: Gerenciamento de Agendamentos
   Contexto:
     Dado que estou autenticado como "agendamentos_user@barbearia.com" com senha "senha123" e role "ADMIN"
     E que existe um cliente de agendamento com nome "Cliente Agend", email "agend.cliente@email.com" e telefone "11911111111"
-    E que existe um barbeiro de agendamento com nome "Barbeiro Agend", especialidade "Corte" e comissão 20.00
-    E que existe um serviço de agendamento com nome "Serviço Agend", preço 40.00 e duração 30 minutos
+    E que existe um barbeiro de agendamento com nome "Barbeiro Agend", especialidade "Corte" e comissão 20
+    E que existe um serviço de agendamento com nome "Serviço Agend", preço 40 e duração 30 minutos
 
   Cenário: Criar um novo agendamento com sucesso
     Quando eu crio um agendamento para o cliente, barbeiro e serviço criados com data "2026-12-01T10:00:00"
