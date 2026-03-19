@@ -53,7 +53,7 @@ public class UsuarioService {
         var adminId = usuarioAutenticadoProvider.getUsuarioIdAutenticado();
 
         if (Role.BARBEIRO.name().equalsIgnoreCase(dto.role()) && dto.barbeiroId() != null) {
-            if (!repository.buscarPorId(adminId).isPresent()) {
+            if (repository.buscarPorId(adminId).isEmpty()) {
                 throw new ResourceNotFoundException("Administrador não encontrado");
             }
         }

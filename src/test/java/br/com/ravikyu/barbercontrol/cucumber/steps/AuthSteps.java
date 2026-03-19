@@ -114,9 +114,9 @@ public class AuthSteps {
 
         String loginUrl = "http://localhost:" + port + "/usuarios/login";
         String loginBody = String.format("{\"email\":\"%s\",\"senha\":\"%s\"}", email, senha);
-        ResponseEntity<String> loginResponse2 = restTemplate.postForEntity(loginUrl, new HttpEntity<>(loginBody, headers), String.class);
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, new HttpEntity<>(loginBody, headers), String.class);
 
-        JsonNode root = objectMapper.readTree(loginResponse2.getBody());
+        JsonNode root = objectMapper.readTree(loginResponse.getBody());
         String token = root.get("token").asText();
         scenarioContext.setJwtToken(token);
     }
