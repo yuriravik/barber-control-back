@@ -25,7 +25,8 @@ public class UsuarioMapper {
         return new UsuarioResponse(
                 usuario.getId(),
                 usuario.getEmail(),
-                usuario.getRole()
+                usuario.getRole(),
+                usuario.getAdminId()
         );
     }
 }

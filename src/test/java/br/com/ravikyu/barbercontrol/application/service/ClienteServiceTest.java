@@ -40,7 +40,7 @@ class ClienteServiceTest {
     @BeforeEach
     void setUp() {
         usuarioId = UUID.randomUUID();
-        when(usuarioProvider.getUsuarioIdAutenticado()).thenReturn(usuarioId);
+        when(usuarioProvider.getAdminUsuarioIdAutenticado()).thenReturn(usuarioId);
     }
 
     private Cliente clienteValido() {

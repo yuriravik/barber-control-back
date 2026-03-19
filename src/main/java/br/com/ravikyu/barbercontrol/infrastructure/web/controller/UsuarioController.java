@@ -27,4 +27,9 @@ public class UsuarioController {
     public LoginResponse login(@RequestBody @Valid LoginRequest dto) {
         return service.login(dto);
     }
+
+    @GetMapping("/me")
+    public UsuarioResponse me() {
+        return service.buscarAutenticado();
+    }
 }

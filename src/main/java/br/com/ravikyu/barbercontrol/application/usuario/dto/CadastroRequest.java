@@ -4,6 +4,8 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
+import java.util.UUID;
+
 public record CadastroRequest(
 
         @NotBlank(message = "Email é obrigatório")
@@ -15,5 +17,7 @@ public record CadastroRequest(
 
         @NotBlank(message = "Role é obrigatória")
         @Pattern(regexp = "ADMIN|BARBEIRO", message = "Role inválida. Valores aceitos: ADMIN, BARBEIRO")
-        String role
+        String role,
+
+        UUID adminId
 ) {}

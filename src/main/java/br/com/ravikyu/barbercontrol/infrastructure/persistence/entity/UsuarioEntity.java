@@ -26,4 +26,7 @@ public class UsuarioEntity {
 
     @Column(nullable = false)
     private String role;
+
+    @Column(name = "admin_id")
+    private UUID adminId;
 }

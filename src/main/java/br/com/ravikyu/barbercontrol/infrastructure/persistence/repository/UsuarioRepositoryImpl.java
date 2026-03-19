@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,6 +23,7 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
                 .email(usuario.getEmail())
                 .senha(usuario.getSenha())
                 .role(usuario.getRole().name())
+                .adminId(usuario.getAdminId())
                 .build();
 
         var salvo = jpaRepository.save(entity);
@@ -35,6 +37,11 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
     }
 
     @Override
+    public Optional<Usuario> buscarPorId(UUID id) {
+        return jpaRepository.findById(id).map(this::toUsuario);
+    }
+
+    @Override
     public boolean existePorEmail(String email) {
         return jpaRepository.existsByEmail(email);
     }
@@ -42,6 +49,7 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
     private Usuario toUsuario(UsuarioEntity entity) {
         var usuario = new Usuario(entity.getEmail(), entity.getSenha(), Role.valueOf(entity.getRole()));
         usuario.setId(entity.getId());
+        usuario.setAdminId(entity.getAdminId());
         return usuario;
     }
 }

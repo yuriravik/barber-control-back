@@ -43,4 +43,26 @@ public class AuthSteps {
         String token = root.get("token").asText();
         scenarioContext.setJwtToken(token);
     }
+
+    @Given("que estou autenticado como barbeiro {string} com senha {string} vinculado ao admin com id {string}")
+    public void queEstouAutenticadoComoBarbeiro(String email, String senha, String adminIdKey) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String adminId = scenarioContext.getId(adminIdKey).toString();
+
+        String registerUrl = "http://localhost:" + port + "/usuarios/cadastrar";
+        String registerBody = String.format(
+                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"BARBEIRO\",\"adminId\":\"%s\"}",
+                email, senha, adminId);
+        restTemplate.postForEntity(registerUrl, new HttpEntity<>(registerBody, headers), String.class);
+
+        String loginUrl = "http://localhost:" + port + "/usuarios/login";
+        String loginBody = String.format("{\"email\":\"%s\",\"senha\":\"%s\"}", email, senha);
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, new HttpEntity<>(loginBody, headers), String.class);
+
+        JsonNode root = objectMapper.readTree(loginResponse.getBody());
+        String token = root.get("token").asText();
+        scenarioContext.setJwtToken(token);
+    }
 }
