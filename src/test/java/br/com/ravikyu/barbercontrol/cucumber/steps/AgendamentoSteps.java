@@ -127,6 +127,29 @@ public class AgendamentoSteps {
             scenarioContext.setLastResponseBody(response.getBody());
     }
 
+    @Given("que existe um agendamento para o barbeiro {string} criado para o cliente e serviço de agendamento em {string}")
+    public void queExisteUmAgendamentoParaBarbeiroEspecifico(String barbeiroPerfilKey, String data) throws Exception {
+        String url = "http://localhost:" + port + "/agendamentos";
+        String body = String.format(
+                "{\"clienteId\":\"%s\",\"barbeiroId\":\"%s\",\"servicoId\":\"%s\",\"dataHora\":\"%s\"}",
+                scenarioContext.getId("agendClienteId"),
+                scenarioContext.getId(barbeiroPerfilKey),
+                scenarioContext.getId("agendServicoId"),
+                data);
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
+        JsonNode root = objectMapper.readTree(response.getBody());
+        scenarioContext.setLastCreatedId(UUID.fromString(root.get("id").asText()));
+    }
+
+    @When("eu tento criar um agendamento sem dados válidos")
+    public void euTentoCriarUmAgendamentoSemDadosValidos() {
+        String url = "http://localhost:" + port + "/agendamentos";
+        String body = "{}";
+        ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headersWithJwt()), String.class);
+        scenarioContext.setLastStatusCode(response.getStatusCode().value());
+        scenarioContext.setLastResponseBody(response.getBody());
+    }
+
     @When("eu crio um agendamento sem clienteId, com o barbeiro e serviço criados e data {string}")
     public void euCrioUmAgendamentoSemClienteId(String data) {
         String url = "http://localhost:" + port + "/agendamentos";

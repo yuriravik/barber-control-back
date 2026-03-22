@@ -14,5 +14,9 @@ public interface AgendamentoRepository {
 
     List<Agendamento> listar();
 
+    List<Agendamento> listarPorBarbeiroId(UUID barbeiroId);
+
+    List<Agendamento> listarPorBarbeiroIds(List<UUID> barbeiroIds);
+
     void deletar(UUID id);
 }

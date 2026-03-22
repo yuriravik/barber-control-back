@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
+import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastrarFuncionarioRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastroRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.LoginRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.LoginResponse;
@@ -21,6 +22,12 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.CREATED)
     public UsuarioResponse cadastrar(@RequestBody @Valid CadastroRequest dto) {
         return service.cadastrar(dto);
+    }
+
+    @PostMapping("/cadastrar-funcionario")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UsuarioResponse cadastrarFuncionario(@RequestBody @Valid CadastrarFuncionarioRequest dto) {
+        return service.cadastrarFuncionario(dto);
     }
 
     @PostMapping("/login")

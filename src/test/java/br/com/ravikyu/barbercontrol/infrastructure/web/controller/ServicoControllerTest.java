@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ServicoController.class)
 @Import({SecurityConfig.class, JwtAuthenticationFilter.class})
-@WithMockUser
+@WithMockUser(roles = "ADMIN")
 class ServicoControllerTest {
 
     @Autowired

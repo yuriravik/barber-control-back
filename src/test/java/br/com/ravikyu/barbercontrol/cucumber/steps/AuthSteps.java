@@ -49,13 +49,16 @@ public class AuthSteps {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String adminId = scenarioContext.getId(adminIdKey).toString();
+        // Use current admin JWT to create the barbeiro user via the new authenticated endpoint
+        HttpHeaders adminHeaders = new HttpHeaders();
+        adminHeaders.setContentType(MediaType.APPLICATION_JSON);
+        adminHeaders.setBearerAuth(scenarioContext.getJwtToken());
 
-        String registerUrl = "http://localhost:" + port + "/usuarios/cadastrar";
+        String registerUrl = "http://localhost:" + port + "/usuarios/cadastrar-funcionario";
         String registerBody = String.format(
-                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"BARBEIRO\",\"adminId\":\"%s\"}",
-                email, senha, adminId);
-        restTemplate.postForEntity(registerUrl, new HttpEntity<>(registerBody, headers), String.class);
+                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"BARBEIRO\"}",
+                email, senha);
+        restTemplate.postForEntity(registerUrl, new HttpEntity<>(registerBody, adminHeaders), String.class);
 
         String loginUrl = "http://localhost:" + port + "/usuarios/login";
         String loginBody = String.format("{\"email\":\"%s\",\"senha\":\"%s\"}", email, senha);
@@ -71,13 +74,43 @@ public class AuthSteps {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String adminId = scenarioContext.getId(adminIdKey).toString();
+        // Use current admin JWT to create the secretaria user via the new authenticated endpoint
+        HttpHeaders adminHeaders = new HttpHeaders();
+        adminHeaders.setContentType(MediaType.APPLICATION_JSON);
+        adminHeaders.setBearerAuth(scenarioContext.getJwtToken());
 
-        String registerUrl = "http://localhost:" + port + "/usuarios/cadastrar";
+        String registerUrl = "http://localhost:" + port + "/usuarios/cadastrar-funcionario";
         String registerBody = String.format(
-                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"SECRETARIA\",\"adminId\":\"%s\"}",
-                email, senha, adminId);
-        restTemplate.postForEntity(registerUrl, new HttpEntity<>(registerBody, headers), String.class);
+                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"SECRETARIA\"}",
+                email, senha);
+        restTemplate.postForEntity(registerUrl, new HttpEntity<>(registerBody, adminHeaders), String.class);
+
+        String loginUrl = "http://localhost:" + port + "/usuarios/login";
+        String loginBody = String.format("{\"email\":\"%s\",\"senha\":\"%s\"}", email, senha);
+        ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, new HttpEntity<>(loginBody, headers), String.class);
+
+        JsonNode root = objectMapper.readTree(loginResponse.getBody());
+        String token = root.get("token").asText();
+        scenarioContext.setJwtToken(token);
+    }
+
+    @Given("que estou autenticado como barbeiro {string} com senha {string} vinculado ao barbeiro com id {string} e admin com id {string}")
+    public void queEstouAutenticadoComoBarbeiroComPerfilId(String email, String senha, String barbeiroPerfilKey, String adminIdKey) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String barbeiroPerfilId = scenarioContext.getId(barbeiroPerfilKey).toString();
+
+        // Use current admin JWT to create the barbeiro user linked to their barbeiro profile
+        HttpHeaders adminHeaders = new HttpHeaders();
+        adminHeaders.setContentType(MediaType.APPLICATION_JSON);
+        adminHeaders.setBearerAuth(scenarioContext.getJwtToken());
+
+        String registerUrl = "http://localhost:" + port + "/usuarios/cadastrar-funcionario";
+        String registerBody = String.format(
+                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"BARBEIRO\",\"barbeiroId\":\"%s\"}",
+                email, senha, barbeiroPerfilId);
+        restTemplate.postForEntity(registerUrl, new HttpEntity<>(registerBody, adminHeaders), String.class);
 
         String loginUrl = "http://localhost:" + port + "/usuarios/login";
         String loginBody = String.format("{\"email\":\"%s\",\"senha\":\"%s\"}", email, senha);

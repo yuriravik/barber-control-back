@@ -22,6 +22,12 @@ public class UsuarioAutenticadoProvider {
                 .orElseThrow(() -> new IllegalStateException("Usuário autenticado não encontrado"));
     }
 
+    public Usuario getUsuarioAutenticado() {
+        var email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return usuarioRepository.buscarPorEmail(email)
+                .orElseThrow(() -> new IllegalStateException("Usuário autenticado não encontrado"));
+    }
+
     /**
      * Returns the admin's user ID for BARBEIRO and SECRETARIA users (resolved from their linked adminId),
      * or the user's own ID for ADMIN users. This is used to scope data access so that

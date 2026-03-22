@@ -61,6 +61,7 @@ public class UsuarioSteps {
         ResponseEntity<String> loginResponse = restTemplate.postForEntity(loginUrl, new HttpEntity<>(loginBody, headers), String.class);
         JsonNode loginRoot = objectMapper.readTree(loginResponse.getBody());
         String token = loginRoot.get("token").asText();
+        scenarioContext.setJwtToken(token);
 
         // Fetch current user info to get admin ID
         HttpHeaders authHeaders = new HttpHeaders();
@@ -75,13 +76,13 @@ public class UsuarioSteps {
 
     @When("eu cadastro um barbeiro com email {string}, senha {string} e adminId {string}")
     public void euCadastroUmBarbeiroComAdminId(String email, String senha, String adminIdKey) {
-        String url = "http://localhost:" + port + "/usuarios/cadastrar";
-        String adminId = scenarioContext.getId(adminIdKey).toString();
+        String url = "http://localhost:" + port + "/usuarios/cadastrar-funcionario";
         String body = String.format(
-                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"BARBEIRO\",\"adminId\":\"%s\"}",
-                email, senha, adminId);
+                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"BARBEIRO\"}",
+                email, senha);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(scenarioContext.getJwtToken());
         ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
         scenarioContext.setLastStatusCode(response.getStatusCode().value());
         scenarioContext.setLastResponseBody(response.getBody());
@@ -100,13 +101,13 @@ public class UsuarioSteps {
 
     @When("eu cadastro uma secretaria com email {string}, senha {string} e adminId {string}")
     public void euCadastroUmaSecretariaComAdminId(String email, String senha, String adminIdKey) {
-        String url = "http://localhost:" + port + "/usuarios/cadastrar";
-        String adminId = scenarioContext.getId(adminIdKey).toString();
+        String url = "http://localhost:" + port + "/usuarios/cadastrar-funcionario";
         String body = String.format(
-                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"SECRETARIA\",\"adminId\":\"%s\"}",
-                email, senha, adminId);
+                "{\"email\":\"%s\",\"senha\":\"%s\",\"role\":\"SECRETARIA\"}",
+                email, senha);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(scenarioContext.getJwtToken());
         ResponseEntity<String> response = restTemplate.postForEntity(url, new HttpEntity<>(body, headers), String.class);
         scenarioContext.setLastStatusCode(response.getStatusCode().value());
         scenarioContext.setLastResponseBody(response.getBody());

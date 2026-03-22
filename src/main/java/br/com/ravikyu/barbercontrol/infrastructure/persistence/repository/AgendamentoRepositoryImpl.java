@@ -72,6 +72,41 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
     }
 
     @Override
+    public List<Agendamento> listarPorBarbeiroId(UUID barbeiroId) {
+        return jpaRepository.findByBarbeiroId(barbeiroId)
+                .stream()
+                .map(e -> new Agendamento(
+                        e.getId(),
+                        e.getClienteId(),
+                        e.getBarbeiroId(),
+                        e.getServicoId(),
+                        e.getDataHoraInicio(),
+                        e.getDataHoraFim(),
+                        StatusAgendamento.valueOf(e.getStatus())
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<Agendamento> listarPorBarbeiroIds(List<UUID> barbeiroIds) {
+        if (barbeiroIds == null || barbeiroIds.isEmpty()) {
+            return List.of();
+        }
+        return jpaRepository.findByBarbeiroIdIn(barbeiroIds)
+                .stream()
+                .map(e -> new Agendamento(
+                        e.getId(),
+                        e.getClienteId(),
+                        e.getBarbeiroId(),
+                        e.getServicoId(),
+                        e.getDataHoraInicio(),
+                        e.getDataHoraFim(),
+                        StatusAgendamento.valueOf(e.getStatus())
+                ))
+                .toList();
+    }
+
+    @Override
     public void deletar(UUID id) {
         jpaRepository.deleteById(id);
     }

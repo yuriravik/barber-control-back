@@ -34,6 +34,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/usuarios/cadastrar", "/usuarios/login").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        // Admin-only: create employees (BARBEIRO/SECRETARIA)
+                        .requestMatchers(HttpMethod.POST, "/usuarios/cadastrar-funcionario").hasRole("ADMIN")
+                        // Client management: ADMIN and SECRETARIA only (BARBEIRO cannot register/delete clients)
+                        .requestMatchers(HttpMethod.POST, "/clientes").hasAnyRole("ADMIN", "SECRETARIA")
+                        .requestMatchers(HttpMethod.DELETE, "/clientes/**").hasAnyRole("ADMIN", "SECRETARIA")
+                        // Service management: ADMIN only
+                        .requestMatchers(HttpMethod.POST, "/servicos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/servicos/**").hasRole("ADMIN")
+                        // Appointment management: ADMIN and SECRETARIA can create/delete; BARBEIRO can only read
+                        .requestMatchers(HttpMethod.POST, "/agendamentos").hasAnyRole("ADMIN", "SECRETARIA")
+                        .requestMatchers(HttpMethod.DELETE, "/agendamentos/**").hasAnyRole("ADMIN", "SECRETARIA")
+                        // Barber profile management: ADMIN only
+                        .requestMatchers(HttpMethod.POST, "/barbeiros").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/barbeiros/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(fo -> fo.sameOrigin()))

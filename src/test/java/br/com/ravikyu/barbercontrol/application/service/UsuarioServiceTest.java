@@ -1,13 +1,14 @@
 package br.com.ravikyu.barbercontrol.application.service;
 
+import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastrarFuncionarioRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastroRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.service.UsuarioService;
 import br.com.ravikyu.barbercontrol.domain.model.Usuario;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
 import br.com.ravikyu.barbercontrol.domain.repository.UsuarioRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.security.JwtTokenProvider;
+import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.BusinessException;
-import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.instancio.Select.field;
@@ -35,6 +35,9 @@ class UsuarioServiceTest {
 
     @Mock
     private JwtTokenProvider tokenProvider;
+
+    @Mock
+    private UsuarioAutenticadoProvider usuarioAutenticadoProvider;
 
     @InjectMocks
     private UsuarioService service;
@@ -80,77 +83,30 @@ class UsuarioServiceTest {
     }
 
     @Test
-    @DisplayName("deveCadastrarUsuarioBarbeiroVinculadoAoAdmin")
-    void deveCadastrarUsuarioBarbeiroVinculadoAoAdmin() {
+    @DisplayName("deveLancarExcecaoAoCadastrarBarbeiroNaRota publica")
+    void deveLancarExcecaoAoCadastrarBarbeiroNaRotaPublica() {
         var adminId = UUID.randomUUID();
         var dto = new CadastroRequest("barbeiro@barbearia.com", "senha123", "BARBEIRO", adminId);
-        var admin = adminValido();
-        admin.setId(adminId);
-
-        var savedBarbeiro = Instancio.of(Usuario.class)
-                .generate(field(Usuario.class, "email"), gen -> gen.net().email())
-                .set(field(Usuario.class, "role"), Role.BARBEIRO)
-                .set(field(Usuario.class, "adminId"), adminId)
-                .create();
-
-        when(repository.existePorEmail(dto.email())).thenReturn(false);
-        when(repository.buscarPorId(adminId)).thenReturn(Optional.of(admin));
-        when(passwordEncoder.encode(dto.senha())).thenReturn("hash");
-        when(repository.salvar(any())).thenReturn(savedBarbeiro);
-
-        var response = service.cadastrar(dto);
-
-        assertNotNull(response);
-        assertEquals(Role.BARBEIRO, response.role());
-        assertEquals(adminId, response.adminId());
-        verify(repository).salvar(argThat(u -> adminId.equals(u.getAdminId())));
-    }
-
-    @Test
-    @DisplayName("deveLancarExcecaoQuandoBarbeiroSemAdminId")
-    void deveLancarExcecaoQuandoBarbeiroSemAdminId() {
-        var dto = new CadastroRequest("barbeiro@barbearia.com", "senha123", "BARBEIRO", null);
 
         when(repository.existePorEmail(dto.email())).thenReturn(false);
 
         var ex = assertThrows(BusinessException.class, () -> service.cadastrar(dto));
 
-        assertEquals("adminId é obrigatório para usuários com role BARBEIRO", ex.getMessage());
+        assertTrue(ex.getMessage().contains("cadastrar-funcionario"));
         verify(repository, never()).salvar(any());
     }
 
     @Test
-    @DisplayName("deveLancarExcecaoQuandoAdminIdNaoEncontrado")
-    void deveLancarExcecaoQuandoAdminIdNaoEncontrado() {
-        var adminId = UUID.randomUUID();
-        var dto = new CadastroRequest("barbeiro@barbearia.com", "senha123", "BARBEIRO", adminId);
+    @DisplayName("deveLancarExcecaoAoCadastrarSecretariaNaRotaPublica")
+    void deveLancarExcecaoAoCadastrarSecretariaNaRotaPublica() {
+        var dto = new CadastroRequest("sec@barbearia.com", "senha123", "SECRETARIA", null);
 
         when(repository.existePorEmail(dto.email())).thenReturn(false);
-        when(repository.buscarPorId(adminId)).thenReturn(Optional.empty());
-
-        var ex = assertThrows(ResourceNotFoundException.class, () -> service.cadastrar(dto));
-
-        assertEquals("Administrador não encontrado", ex.getMessage());
-    }
-
-    @Test
-    @DisplayName("deveLancarExcecaoQuandoAdminIdNaoPertenceAAdmin")
-    void deveLancarExcecaoQuandoAdminIdNaoPertenceAAdmin() {
-        var adminId = UUID.randomUUID();
-        var dto = new CadastroRequest("barbeiro@barbearia.com", "senha123", "BARBEIRO", adminId);
-
-        var outroBarbeiro = Instancio.of(Usuario.class)
-                .generate(field(Usuario.class, "email"), gen -> gen.net().email())
-                .set(field(Usuario.class, "role"), Role.BARBEIRO)
-                .create();
-        outroBarbeiro.setId(adminId);
-
-        when(repository.existePorEmail(dto.email())).thenReturn(false);
-        when(repository.buscarPorId(adminId)).thenReturn(Optional.of(outroBarbeiro));
 
         var ex = assertThrows(BusinessException.class, () -> service.cadastrar(dto));
 
-        assertEquals("O usuário vinculado deve ter role ADMIN", ex.getMessage());
+        assertTrue(ex.getMessage().contains("cadastrar-funcionario"));
+        verify(repository, never()).salvar(any());
     }
 
     @Test
@@ -164,6 +120,75 @@ class UsuarioServiceTest {
         var ex = assertThrows(BusinessException.class, () -> service.cadastrar(dto));
 
         assertEquals("Usuários com role ADMIN não podem ser vinculados a outro administrador", ex.getMessage());
+        verify(repository, never()).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveCadastrarFuncionarioBarbeiroComSucesso")
+    void deveCadastrarFuncionarioBarbeiroComSucesso() {
+        var adminId = UUID.randomUUID();
+        var barbeiroId = UUID.randomUUID();
+        var dto = new CadastrarFuncionarioRequest("barbeiro@barbearia.com", "senha123", "BARBEIRO", barbeiroId);
+
+        var savedBarbeiro = Instancio.of(Usuario.class)
+                .generate(field(Usuario.class, "email"), gen -> gen.net().email())
+                .set(field(Usuario.class, "role"), Role.BARBEIRO)
+                .set(field(Usuario.class, "adminId"), adminId)
+                .set(field(Usuario.class, "barbeiroId"), barbeiroId)
+                .create();
+
+        when(repository.existePorEmail(dto.email())).thenReturn(false);
+        when(usuarioAutenticadoProvider.getUsuarioIdAutenticado()).thenReturn(adminId);
+        when(repository.buscarPorId(adminId)).thenReturn(java.util.Optional.of(adminValido()));
+        when(passwordEncoder.encode(dto.senha())).thenReturn("hash");
+        when(repository.salvar(any())).thenReturn(savedBarbeiro);
+
+        var response = service.cadastrarFuncionario(dto);
+
+        assertNotNull(response);
+        assertEquals(Role.BARBEIRO, response.role());
+        assertEquals(adminId, response.adminId());
+        verify(repository).salvar(argThat(u ->
+                adminId.equals(u.getAdminId()) && barbeiroId.equals(u.getBarbeiroId())));
+    }
+
+    @Test
+    @DisplayName("deveCadastrarFuncionarioSecretariaComSucesso")
+    void deveCadastrarFuncionarioSecretariaComSucesso() {
+        var adminId = UUID.randomUUID();
+        var dto = new CadastrarFuncionarioRequest("sec@barbearia.com", "senha123", "SECRETARIA", null);
+
+        var savedSec = Instancio.of(Usuario.class)
+                .generate(field(Usuario.class, "email"), gen -> gen.net().email())
+                .set(field(Usuario.class, "role"), Role.SECRETARIA)
+                .set(field(Usuario.class, "adminId"), adminId)
+                .set(field(Usuario.class, "barbeiroId"), null)
+                .create();
+
+        when(repository.existePorEmail(dto.email())).thenReturn(false);
+        when(usuarioAutenticadoProvider.getUsuarioIdAutenticado()).thenReturn(adminId);
+        when(passwordEncoder.encode(dto.senha())).thenReturn("hash");
+        when(repository.salvar(any())).thenReturn(savedSec);
+
+        var response = service.cadastrarFuncionario(dto);
+
+        assertNotNull(response);
+        assertEquals(Role.SECRETARIA, response.role());
+        assertEquals(adminId, response.adminId());
+        assertNull(response.barbeiroId());
+        verify(repository).salvar(argThat(u -> adminId.equals(u.getAdminId())));
+    }
+
+    @Test
+    @DisplayName("deveLancarExcecaoAoCadastrarFuncionarioComEmailJaExistente")
+    void deveLancarExcecaoAoCadastrarFuncionarioComEmailJaExistente() {
+        var dto = new CadastrarFuncionarioRequest("dup@barbearia.com", "senha123", "BARBEIRO", null);
+
+        when(repository.existePorEmail(dto.email())).thenReturn(true);
+
+        var ex = assertThrows(BusinessException.class, () -> service.cadastrarFuncionario(dto));
+
+        assertEquals("Email já cadastrado", ex.getMessage());
         verify(repository, never()).salvar(any());
     }
 }

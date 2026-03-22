@@ -29,4 +29,7 @@ public class UsuarioEntity {
 
     @Column(name = "admin_id")
     private UUID adminId;
+
+    @Column(name = "barbeiro_id")
+    private UUID barbeiroId;
 }

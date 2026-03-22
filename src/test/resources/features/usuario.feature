@@ -44,7 +44,7 @@ Funcionalidade: Gerenciamento de Usuários
     Então o status da resposta deve ser 201
     E o campo "role" da resposta deve ser "BARBEIRO"
 
-  Cenário: Não deve cadastrar barbeiro sem adminId
+  Cenário: Não deve cadastrar barbeiro na rota pública de cadastro
     Quando eu cadastro um barbeiro com email "barbeiro.semadmin@barbearia.com", senha "senha123" sem adminId
     Então o status da resposta deve ser 422
 
@@ -54,6 +54,6 @@ Funcionalidade: Gerenciamento de Usuários
     Então o status da resposta deve ser 201
     E o campo "role" da resposta deve ser "SECRETARIA"
 
-  Cenário: Não deve cadastrar secretaria sem adminId
+  Cenário: Não deve cadastrar secretaria na rota pública de cadastro
     Quando eu cadastro uma secretaria com email "secretaria.semadmin@barbearia.com", senha "senha123" sem adminId
     Então o status da resposta deve ser 422

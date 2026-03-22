@@ -24,6 +24,7 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
                 .senha(usuario.getSenha())
                 .role(usuario.getRole().name())
                 .adminId(usuario.getAdminId())
+                .barbeiroId(usuario.getBarbeiroId())
                 .build();
 
         var salvo = jpaRepository.save(entity);
@@ -50,6 +51,7 @@ public class UsuarioRepositoryImpl implements UsuarioRepository {
         var usuario = new Usuario(entity.getEmail(), entity.getSenha(), Role.valueOf(entity.getRole()));
         usuario.setId(entity.getId());
         usuario.setAdminId(entity.getAdminId());
+        usuario.setBarbeiroId(entity.getBarbeiroId());
         return usuario;
     }
 }

@@ -23,9 +23,12 @@ Funcionalidade: Acesso da Secretaria para Cadastrar Clientes e Agendamentos
     Então o status da resposta deve ser 201
     E o campo "status" da resposta deve ser "AGENDADO"
 
-  Cenário: Secretaria deve visualizar clientes cadastrados pelo admin
-    Dado que existe um cliente criado com nome "Cliente Visivel", email "visivel.secretaria@email.com" e telefone "11977770001"
-    E que estou autenticada como secretaria "secretaria.lista@barbearia.com" com senha "senha123" vinculada ao admin com id "adminSecretaria"
-    Quando eu listo os clientes
+  Cenário: Secretaria deve visualizar todos os agendamentos dos barbeiros do admin
+    E que existe um barbeiro de agendamento com nome "Barbeiro Sec Lista", especialidade "Corte" e comissão 20
+    E que existe um cliente de agendamento com nome "Cliente Sec Lista", email "sec.lista.agend@email.com" e telefone "11900000002"
+    E que existe um serviço de agendamento com nome "Serviço Sec Lista", preço 50 e duração 30 minutos
+    E que existe um agendamento criado para o cliente, barbeiro e serviço em "2026-12-21T10:00:00"
+    E que estou autenticada como secretaria "secretaria.lista.agend@barbearia.com" com senha "senha123" vinculada ao admin com id "adminSecretaria"
+    Quando eu listo os agendamentos
     Então o status da resposta deve ser 200
     E a resposta deve ser uma lista
