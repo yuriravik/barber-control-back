@@ -8,6 +8,7 @@ import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.PagamentoE
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,6 +47,18 @@ public class PagamentoRepositoryImpl implements PagamentoRepository {
     @Override
     public List<Pagamento> listar() {
         return jpaRepository.findAll().stream().map(this::toModel).toList();
+    }
+
+    @Override
+    public List<Pagamento> listarComFiltros(List<UUID> agendamentoIds, LocalDateTime dataInicio,
+                                            LocalDateTime dataFim) {
+        if (agendamentoIds == null || agendamentoIds.isEmpty()) {
+            return List.of();
+        }
+        return jpaRepository.findComFiltros(agendamentoIds, dataInicio, dataFim)
+                .stream()
+                .map(this::toModel)
+                .toList();
     }
 
     private Pagamento toModel(PagamentoEntity e) {

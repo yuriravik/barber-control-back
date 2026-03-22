@@ -2,6 +2,7 @@ package br.com.ravikyu.barbercontrol.domain.repository;
 
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +18,9 @@ public interface AgendamentoRepository {
     List<Agendamento> listarPorBarbeiroId(UUID barbeiroId);
 
     List<Agendamento> listarPorBarbeiroIds(List<UUID> barbeiroIds);
+
+    List<Agendamento> listarComFiltros(List<UUID> barbeiroIds, UUID barbeiroId, UUID servicoId,
+                                       LocalDateTime dataInicio, LocalDateTime dataFim);
 
     void deletar(UUID id);
 }
