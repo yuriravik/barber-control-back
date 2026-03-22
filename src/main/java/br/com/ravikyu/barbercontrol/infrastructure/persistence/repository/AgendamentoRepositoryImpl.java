@@ -7,6 +7,7 @@ import br.com.ravikyu.barbercontrol.infrastructure.persistence.entity.Agendament
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -93,6 +94,26 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
             return List.of();
         }
         return jpaRepository.findByBarbeiroIdIn(barbeiroIds)
+                .stream()
+                .map(e -> new Agendamento(
+                        e.getId(),
+                        e.getClienteId(),
+                        e.getBarbeiroId(),
+                        e.getServicoId(),
+                        e.getDataHoraInicio(),
+                        e.getDataHoraFim(),
+                        StatusAgendamento.valueOf(e.getStatus())
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<Agendamento> listarComFiltros(List<UUID> barbeiroIds, UUID barbeiroId, UUID servicoId,
+                                              LocalDateTime dataInicio, LocalDateTime dataFim) {
+        if (barbeiroIds == null || barbeiroIds.isEmpty()) {
+            return List.of();
+        }
+        return jpaRepository.findComFiltros(barbeiroIds, barbeiroId, servicoId, dataInicio, dataFim)
                 .stream()
                 .map(e -> new Agendamento(
                         e.getId(),
