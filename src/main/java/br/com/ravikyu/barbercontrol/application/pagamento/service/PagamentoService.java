@@ -3,6 +3,7 @@ package br.com.ravikyu.barbercontrol.application.pagamento.service;
 import br.com.ravikyu.barbercontrol.application.pagamento.dto.PagamentoResponse;
 import br.com.ravikyu.barbercontrol.application.pagamento.dto.RegistrarPagamentoRequest;
 import br.com.ravikyu.barbercontrol.application.pagamento.mapper.PagamentoMapper;
+import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
 import br.com.ravikyu.barbercontrol.domain.repository.AgendamentoRepository;
@@ -69,7 +70,7 @@ public class PagamentoService {
             }
             return agendamentoRepository.listarPorBarbeiroId(usuario.getBarbeiroId())
                     .stream()
-                    .map(agendamento -> agendamento.getId())
+                    .map(Agendamento::getId)
                     .toList();
         }
 
@@ -84,7 +85,7 @@ public class PagamentoService {
                 .toList();
         return agendamentoRepository.listarPorBarbeiroIds(barbeiroIds)
                 .stream()
-                .map(agendamento -> agendamento.getId())
+                .map(Agendamento::getId)
                 .toList();
     }
 
