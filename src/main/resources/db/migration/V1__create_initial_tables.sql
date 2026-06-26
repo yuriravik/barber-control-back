@@ -1,12 +1,12 @@
 CREATE TABLE clientes (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     telefone VARCHAR(50),
     email VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE barbeiros (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     especialidade VARCHAR(255),
     percentual_comissao NUMERIC(5,2) NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE barbeiros (
 );
 
 CREATE TABLE servicos (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     descricao VARCHAR(255) NOT NULL,
     preco NUMERIC(10,2) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE servicos (
 );
 
 CREATE TABLE agendamentos (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     cliente_id UUID NOT NULL,
     barbeiro_id UUID NOT NULL,
     servico_id UUID NOT NULL,
@@ -36,14 +36,14 @@ CREATE TABLE agendamentos (
 );
 
 CREATE TABLE usuarios (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     senha VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE pagamentos (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     agendamento_id UUID NOT NULL UNIQUE,
     valor NUMERIC(10,2) NOT NULL,
     forma_pagamento VARCHAR(50) NOT NULL,

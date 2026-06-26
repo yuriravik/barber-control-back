@@ -158,6 +158,8 @@ class AgendamentoServiceTest {
         var request = new CriarAgendamentoRequest(
                 UUID.randomUUID(), UUID.randomUUID(), servicoId, DATA_HORA);
 
+        when(clienteRepository.buscarPorId(request.clienteId())).thenReturn(Optional.of(clienteValido()));
+        when(barbeiroRepository.buscarPorId(request.barbeiroId())).thenReturn(Optional.of(barbeiroValido()));
         when(servicoRepository.buscarPorId(servicoId)).thenReturn(Optional.empty());
 
         var ex = assertThrows(ResourceNotFoundException.class, () -> service.criar(request));
@@ -175,6 +177,8 @@ class AgendamentoServiceTest {
         var request = new CriarAgendamentoRequest(
                 UUID.randomUUID(), barbeiroId, servico.getId(), DATA_HORA);
 
+        when(clienteRepository.buscarPorId(request.clienteId())).thenReturn(Optional.of(clienteValido()));
+        when(barbeiroRepository.buscarPorId(barbeiroId)).thenReturn(Optional.of(barbeiroValido()));
         when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
         when(repository.existeConflitoHorario(barbeiroId, DATA_HORA, DATA_HORA.plusMinutes(30)))
                 .thenReturn(true);
@@ -323,6 +327,33 @@ class AgendamentoServiceTest {
         service.deletar(id);
 
         verify(repository, times(1)).deletar(id);
+    }
+
+    @Test
+    @DisplayName("deveAtualizarAgendamentoComSucesso")
+    void deveAtualizarAgendamentoComSucesso() {
+        var cliente = clienteValido();
+        var barbeiro = barbeiroValido();
+        var servico = servicoValido(45);
+        var agendamentoId = UUID.randomUUID();
+        var agendamento = agendamentoSalvo(agendamentoId, cliente.getId(), barbeiro.getId(), servico.getId());
+        var request = new br.com.ravikyu.barbercontrol.application.agendamento.dto.AtualizarAgendamentoRequest(
+                cliente.getId(), barbeiro.getId(), servico.getId(), DATA_HORA.plusDays(1));
+
+        when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
+        when(clienteRepository.buscarPorId(cliente.getId())).thenReturn(Optional.of(cliente));
+        when(barbeiroRepository.buscarPorId(barbeiro.getId())).thenReturn(Optional.of(barbeiro));
+        when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
+        when(repository.existeConflitoHorarioExceto(agendamentoId, barbeiro.getId(), DATA_HORA.plusDays(1), DATA_HORA.plusDays(1).plusMinutes(45)))
+                .thenReturn(false);
+        when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var response = service.atualizar(agendamentoId, request);
+
+        assertEquals(agendamentoId, response.id());
+        verify(repository).salvar(argThat(a -> a.getId().equals(agendamentoId)
+                && a.getDataHoraInicio().equals(DATA_HORA.plusDays(1))
+                && a.getDataHoraFim().equals(DATA_HORA.plusDays(1).plusMinutes(45))));
     }
 
     @Test
