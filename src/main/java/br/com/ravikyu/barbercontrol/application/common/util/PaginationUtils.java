@@ -19,7 +19,7 @@ public final class PaginationUtils {
         }
 
         long totalElements = items.size();
-        int totalPages = totalElements == 0 ? 0 : (int) Math.ceil((double) totalElements / size);
+        int totalPages = totalElements == 0 ? 0 : (int) ((totalElements + size - 1) / size);
         int fromIndex = Math.min(page * size, items.size());
         int toIndex = Math.min(fromIndex + size, items.size());
 

@@ -20,7 +20,9 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
 
     @Override
     public Agendamento salvar(Agendamento agendamento) {
-        AgendamentoEntity entity = new AgendamentoEntity();
+        AgendamentoEntity entity = agendamento.getId() == null
+                ? new AgendamentoEntity()
+                : jpaRepository.findById(agendamento.getId()).orElseGet(AgendamentoEntity::new);
         entity.setId(agendamento.getId());
         entity.setClienteId(agendamento.getClienteId());
         entity.setBarbeiroId(agendamento.getBarbeiroId());

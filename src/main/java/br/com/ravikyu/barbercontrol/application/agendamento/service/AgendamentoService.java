@@ -36,9 +36,7 @@ public class AgendamentoService {
     private final UsuarioAutenticadoProvider usuarioProvider;
 
     public AgendamentoResponse criar(CriarAgendamentoRequest request) {
-        validarEntidadesRelacionadas(request.clienteId(), request.barbeiroId(), request.servicoId());
-        var agenda = AgendamentoMapper.toDomain(request);
-        preencherDataFim(agenda);
+        var agenda = prepararAgendamentoParaPersistencia(AgendamentoMapper.toDomain(request));
 
         if (repository.existeConflitoHorario(agenda.getBarbeiroId(), agenda.getDataHoraInicio(), agenda.getDataHoraFim())) {
             throw new AgendamentoException("Já existe um agendamento neste horário para o barbeiro informado");
@@ -95,18 +93,17 @@ public class AgendamentoService {
             throw new BusinessException("Apenas agendamentos com status AGENDADO podem ser remarcados");
         }
 
-        validarEntidadesRelacionadas(request.clienteId(), request.barbeiroId(), request.servicoId());
-        var atualizado = AgendamentoMapper.toDomain(new CriarAgendamentoRequest(
-                request.clienteId(), request.barbeiroId(), request.servicoId(), request.dataHora()));
-        atualizado.setId(existente.getId());
-        atualizado.setStatus(existente.getStatus());
-        preencherDataFim(atualizado);
+        existente.setClienteId(request.clienteId());
+        existente.setBarbeiroId(request.barbeiroId());
+        existente.setServicoId(request.servicoId());
+        existente.setDataHoraInicio(request.dataHora());
+        prepararAgendamentoParaPersistencia(existente);
 
-        if (repository.existeConflitoHorarioExceto(id, atualizado.getBarbeiroId(), atualizado.getDataHoraInicio(), atualizado.getDataHoraFim())) {
+        if (repository.existeConflitoHorarioExceto(id, existente.getBarbeiroId(), existente.getDataHoraInicio(), existente.getDataHoraFim())) {
             throw new AgendamentoException("Já existe um agendamento neste horário para o barbeiro informado");
         }
 
-        repository.salvar(atualizado);
+        repository.salvar(existente);
         return buscar(id);
     }
 
@@ -147,10 +144,12 @@ public class AgendamentoService {
         repository.deletar(id);
     }
 
-    private void preencherDataFim(Agendamento agenda) {
-        var servico = servicoRepository.buscarPorId(agenda.getServicoId())
+    private Agendamento prepararAgendamentoParaPersistencia(Agendamento agendamento) {
+        validarEntidadesRelacionadas(agendamento.getClienteId(), agendamento.getBarbeiroId(), agendamento.getServicoId());
+        var servico = servicoRepository.buscarPorId(agendamento.getServicoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
-        agenda.setDataHoraFim(agenda.getDataHoraInicio().plusMinutes(servico.getDuracaoMinutos()));
+        agendamento.setDataHoraFim(agendamento.getDataHoraInicio().plusMinutes(servico.getDuracaoMinutos()));
+        return agendamento;
     }
 
     private void validarEntidadesRelacionadas(UUID clienteId, UUID barbeiroId, UUID servicoId) {
