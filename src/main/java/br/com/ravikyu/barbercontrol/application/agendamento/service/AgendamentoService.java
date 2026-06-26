@@ -90,7 +90,7 @@ public class AgendamentoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
 
         if (existente.getStatus() != StatusAgendamento.AGENDADO) {
-            throw new BusinessException("Apenas agendamentos com status AGENDADO podem ser remarcados");
+            throw new BusinessException("Apenas agendamentos com status AGENDADO podem ser atualizados");
         }
 
         existente.setClienteId(request.clienteId());
