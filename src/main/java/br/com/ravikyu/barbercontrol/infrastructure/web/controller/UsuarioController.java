@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
+import br.com.ravikyu.barbercontrol.application.usuario.dto.AlterarSenhaRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastrarFuncionarioRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastroRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.LoginRequest;
@@ -33,6 +34,17 @@ public class UsuarioController {
     @PostMapping("/login")
     public LoginResponse login(@RequestBody @Valid LoginRequest dto) {
         return service.login(dto);
+    }
+
+    @PostMapping("/refresh")
+    public LoginResponse refresh() {
+        return service.refreshToken();
+    }
+
+    @PatchMapping("/alterar-senha")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void alterarSenha(@RequestBody @Valid AlterarSenhaRequest dto) {
+        service.alterarSenha(dto);
     }
 
     @GetMapping("/me")

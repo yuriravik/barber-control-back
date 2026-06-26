@@ -20,8 +20,8 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
 
     @Override
     public Agendamento salvar(Agendamento agendamento) {
-
         AgendamentoEntity entity = new AgendamentoEntity();
+        entity.setId(agendamento.getId());
         entity.setClienteId(agendamento.getClienteId());
         entity.setBarbeiroId(agendamento.getBarbeiroId());
         entity.setServicoId(agendamento.getServicoId());
@@ -130,6 +130,13 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
     @Override
     public boolean existeConflitoHorario(UUID barbeiroId, LocalDateTime dataHoraInicio, LocalDateTime dataHoraFim) {
         return jpaRepository.existsConflitoHorario(barbeiroId, StatusAgendamento.AGENDADO.name(),
+                dataHoraInicio, dataHoraFim);
+    }
+
+    @Override
+    public boolean existeConflitoHorarioExceto(UUID agendamentoId, UUID barbeiroId, LocalDateTime dataHoraInicio,
+                                               LocalDateTime dataHoraFim) {
+        return jpaRepository.existsConflitoHorarioExceto(agendamentoId, barbeiroId, StatusAgendamento.AGENDADO.name(),
                 dataHoraInicio, dataHoraFim);
     }
 

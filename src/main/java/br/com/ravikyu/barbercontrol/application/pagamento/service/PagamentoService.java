@@ -1,11 +1,15 @@
 package br.com.ravikyu.barbercontrol.application.pagamento.service;
 
+import br.com.ravikyu.barbercontrol.application.common.dto.PageResponse;
+import br.com.ravikyu.barbercontrol.application.common.util.PaginationUtils;
 import br.com.ravikyu.barbercontrol.application.pagamento.dto.PagamentoResponse;
 import br.com.ravikyu.barbercontrol.application.pagamento.dto.RegistrarPagamentoRequest;
 import br.com.ravikyu.barbercontrol.application.pagamento.mapper.PagamentoMapper;
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
+import br.com.ravikyu.barbercontrol.domain.model.enuns.FormaPagamento;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
+import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusPagamento;
 import br.com.ravikyu.barbercontrol.domain.repository.AgendamentoRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.PagamentoRepository;
@@ -15,6 +19,7 @@ import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoun
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -49,6 +54,19 @@ public class PagamentoService {
                 .stream()
                 .map(PagamentoMapper::toResponse)
                 .toList();
+    }
+
+    public PageResponse<PagamentoResponse> buscarPaginado(String status, String formaPagamento,
+                                                          LocalDateTime dataInicio, LocalDateTime dataFim,
+                                                          int page, int size) {
+        var agendamentoIdsPermitidos = resolverAgendamentoIdsPermitidos();
+        var pagamentos = repository.listarComFiltros(agendamentoIdsPermitidos, dataInicio, dataFim)
+                .stream()
+                .filter(pagamento -> status == null || pagamento.getStatus() == StatusPagamento.valueOf(status.toUpperCase()))
+                .filter(pagamento -> formaPagamento == null || pagamento.getFormaPagamento() == FormaPagamento.valueOf(formaPagamento.toUpperCase()))
+                .map(PagamentoMapper::toResponse)
+                .toList();
+        return PaginationUtils.paginate(pagamentos, page, size);
     }
 
     public PagamentoResponse buscar(UUID id) {

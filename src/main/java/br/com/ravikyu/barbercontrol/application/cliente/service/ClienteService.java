@@ -4,6 +4,8 @@ import br.com.ravikyu.barbercontrol.application.cliente.dto.AtualizarClienteRequ
 import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
 import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.mapper.ClienteMapper;
+import br.com.ravikyu.barbercontrol.application.common.dto.PageResponse;
+import br.com.ravikyu.barbercontrol.application.common.util.PaginationUtils;
 import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -33,6 +36,17 @@ public class ClienteService {
                 .stream()
                 .map(ClienteMapper::toResponse)
                 .toList();
+    }
+
+    public PageResponse<ClienteResponse> buscarPaginado(String nome, String email, String telefone, int page, int size) {
+        var clientes = repository.listarPorUsuario(usuarioProvider.getAdminUsuarioIdAutenticado())
+                .stream()
+                .filter(cliente -> nome == null || cliente.getNome().toLowerCase(Locale.ROOT).contains(nome.toLowerCase(Locale.ROOT)))
+                .filter(cliente -> email == null || cliente.getEmail().toLowerCase(Locale.ROOT).contains(email.toLowerCase(Locale.ROOT)))
+                .filter(cliente -> telefone == null || (cliente.getTelefone() != null && cliente.getTelefone().contains(telefone)))
+                .map(ClienteMapper::toResponse)
+                .toList();
+        return PaginationUtils.paginate(clientes, page, size);
     }
 
     public ClienteResponse buscar(UUID id) {

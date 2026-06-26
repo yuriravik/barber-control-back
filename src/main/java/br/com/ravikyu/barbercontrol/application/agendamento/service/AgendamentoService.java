@@ -1,8 +1,11 @@
 package br.com.ravikyu.barbercontrol.application.agendamento.service;
 
 import br.com.ravikyu.barbercontrol.application.agendamento.dto.AgendamentoResponse;
+import br.com.ravikyu.barbercontrol.application.agendamento.dto.AtualizarAgendamentoRequest;
 import br.com.ravikyu.barbercontrol.application.agendamento.dto.CriarAgendamentoRequest;
 import br.com.ravikyu.barbercontrol.application.agendamento.mapper.AgendamentoMapper;
+import br.com.ravikyu.barbercontrol.application.common.dto.PageResponse;
+import br.com.ravikyu.barbercontrol.application.common.util.PaginationUtils;
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
@@ -18,6 +21,7 @@ import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoun
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,13 +36,9 @@ public class AgendamentoService {
     private final UsuarioAutenticadoProvider usuarioProvider;
 
     public AgendamentoResponse criar(CriarAgendamentoRequest request) {
+        validarEntidadesRelacionadas(request.clienteId(), request.barbeiroId(), request.servicoId());
         var agenda = AgendamentoMapper.toDomain(request);
-        var servico = servicoRepository.buscarPorId(agenda.getServicoId())
-                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
-
-        agenda.setDataHoraFim(
-                agenda.getDataHoraInicio().plusMinutes(servico.getDuracaoMinutos())
-        );
+        preencherDataFim(agenda);
 
         if (repository.existeConflitoHorario(agenda.getBarbeiroId(), agenda.getDataHoraInicio(), agenda.getDataHoraFim())) {
             throw new AgendamentoException("Já existe um agendamento neste horário para o barbeiro informado");
@@ -49,31 +49,21 @@ public class AgendamentoService {
     }
 
     public List<AgendamentoResponse> listar() {
-        var usuario = usuarioProvider.getUsuarioAutenticado();
-        List<Agendamento> agendamentos;
-
-        if (usuario.getRole() == Role.BARBEIRO) {
-            if (usuario.getBarbeiroId() == null) {
-                return List.of();
-            }
-            agendamentos = repository.listarPorBarbeiroId(usuario.getBarbeiroId());
-        } else if (usuario.getRole() == Role.SECRETARIA) {
-            var barbeiroIds = barbeiroRepository.listarPorUsuario(usuario.getAdminId())
-                    .stream()
-                    .map(Barbeiro::getId)
-                    .toList();
-            agendamentos = repository.listarPorBarbeiroIds(barbeiroIds);
-        } else {
-            var barbeiroIds = barbeiroRepository.listarPorUsuario(usuario.getId())
-                    .stream()
-                    .map(Barbeiro::getId)
-                    .toList();
-            agendamentos = repository.listarPorBarbeiroIds(barbeiroIds);
-        }
-
-        return agendamentos.stream()
-                .map(a -> buscar(a.getId()))
+        return resolverAgendamentosPermitidos().stream()
+                .map(agendamento -> buscar(agendamento.getId()))
                 .toList();
+    }
+
+    public PageResponse<AgendamentoResponse> buscarPaginado(String status, UUID barbeiroId, UUID servicoId,
+                                                            LocalDateTime dataInicio, LocalDateTime dataFim,
+                                                            int page, int size) {
+        var barbeiroIdsPermitidos = resolverBarbeiroIdsPermitidos();
+        var responses = repository.listarComFiltros(barbeiroIdsPermitidos, barbeiroId, servicoId, dataInicio, dataFim)
+                .stream()
+                .filter(agendamento -> status == null || agendamento.getStatus().name().equalsIgnoreCase(status))
+                .map(agendamento -> buscar(agendamento.getId()))
+                .toList();
+        return PaginationUtils.paginate(responses, page, size);
     }
 
     public AgendamentoResponse buscar(UUID id) {
@@ -97,6 +87,29 @@ public class AgendamentoService {
         );
     }
 
+    public AgendamentoResponse atualizar(UUID id, AtualizarAgendamentoRequest request) {
+        var existente = repository.buscarPorId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+
+        if (existente.getStatus() != StatusAgendamento.AGENDADO) {
+            throw new BusinessException("Apenas agendamentos com status AGENDADO podem ser remarcados");
+        }
+
+        validarEntidadesRelacionadas(request.clienteId(), request.barbeiroId(), request.servicoId());
+        var atualizado = AgendamentoMapper.toDomain(new CriarAgendamentoRequest(
+                request.clienteId(), request.barbeiroId(), request.servicoId(), request.dataHora()));
+        atualizado.setId(existente.getId());
+        atualizado.setStatus(existente.getStatus());
+        preencherDataFim(atualizado);
+
+        if (repository.existeConflitoHorarioExceto(id, atualizado.getBarbeiroId(), atualizado.getDataHoraInicio(), atualizado.getDataHoraFim())) {
+            throw new AgendamentoException("Já existe um agendamento neste horário para o barbeiro informado");
+        }
+
+        repository.salvar(atualizado);
+        return buscar(id);
+    }
+
     public void concluir(UUID id) {
         var agendamento = repository.buscarPorId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
@@ -107,7 +120,6 @@ public class AgendamentoService {
 
         var usuario = usuarioProvider.getUsuarioAutenticado();
         if (usuario.getRole() == Role.BARBEIRO) {
-            // A BARBEIRO user without a linked barbeiroId has no appointments, and must not conclude others'
             boolean semVinculo = usuario.getBarbeiroId() == null;
             boolean agendamentoDeOutro = !semVinculo && !usuario.getBarbeiroId().equals(agendamento.getBarbeiroId());
             if (semVinculo || agendamentoDeOutro) {
@@ -133,5 +145,49 @@ public class AgendamentoService {
 
     public void deletar(UUID id) {
         repository.deletar(id);
+    }
+
+    private void preencherDataFim(Agendamento agenda) {
+        var servico = servicoRepository.buscarPorId(agenda.getServicoId())
+                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
+        agenda.setDataHoraFim(agenda.getDataHoraInicio().plusMinutes(servico.getDuracaoMinutos()));
+    }
+
+    private void validarEntidadesRelacionadas(UUID clienteId, UUID barbeiroId, UUID servicoId) {
+        clienteRepository.buscarPorId(clienteId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
+        barbeiroRepository.buscarPorId(barbeiroId)
+                .orElseThrow(() -> new ResourceNotFoundException("Barbeiro não encontrado"));
+        servicoRepository.buscarPorId(servicoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
+    }
+
+    private List<UUID> resolverBarbeiroIdsPermitidos() {
+        var usuario = usuarioProvider.getUsuarioAutenticado();
+        if (usuario.getRole() == Role.BARBEIRO) {
+            return usuario.getBarbeiroId() == null ? List.of() : List.of(usuario.getBarbeiroId());
+        }
+        if (usuario.getRole() == Role.SECRETARIA) {
+            return barbeiroRepository.listarPorUsuario(usuario.getAdminId())
+                    .stream()
+                    .map(Barbeiro::getId)
+                    .toList();
+        }
+        return barbeiroRepository.listarPorUsuario(usuario.getId())
+                .stream()
+                .map(Barbeiro::getId)
+                .toList();
+    }
+
+    private List<Agendamento> resolverAgendamentosPermitidos() {
+        var usuario = usuarioProvider.getUsuarioAutenticado();
+        if (usuario.getRole() == Role.BARBEIRO) {
+            if (usuario.getBarbeiroId() == null) {
+                return List.of();
+            }
+            return repository.listarPorBarbeiroId(usuario.getBarbeiroId());
+        }
+
+        return repository.listarPorBarbeiroIds(resolverBarbeiroIdsPermitidos());
     }
 }

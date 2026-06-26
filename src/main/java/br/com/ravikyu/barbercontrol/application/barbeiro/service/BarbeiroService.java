@@ -4,6 +4,8 @@ import br.com.ravikyu.barbercontrol.application.barbeiro.dto.AtualizarBarbeiroRe
 import br.com.ravikyu.barbercontrol.application.barbeiro.dto.BarbeiroResponse;
 import br.com.ravikyu.barbercontrol.application.barbeiro.dto.CriarBarbeiroRequest;
 import br.com.ravikyu.barbercontrol.application.barbeiro.mapper.BarbeiroMapper;
+import br.com.ravikyu.barbercontrol.application.common.dto.PageResponse;
+import br.com.ravikyu.barbercontrol.application.common.util.PaginationUtils;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -33,6 +36,22 @@ public class BarbeiroService {
                 .stream()
                 .map(BarbeiroMapper::toResponse)
                 .toList();
+    }
+
+    public PageResponse<BarbeiroResponse> buscarPaginado(String nome, Boolean ativo, int page, int size) {
+        var filtrados = repository.listarPorUsuario(usuarioProvider.getUsuarioIdAutenticado())
+                .stream()
+                .filter(barbeiro -> nome == null || barbeiro.getNome().toLowerCase(Locale.ROOT).contains(nome.toLowerCase(Locale.ROOT)))
+                .filter(barbeiro -> ativo == null || barbeiro.isAtivo() == ativo)
+                .map(BarbeiroMapper::toResponse)
+                .toList();
+        return PaginationUtils.paginate(filtrados, page, size);
+    }
+
+    public BarbeiroResponse buscar(UUID id) {
+        return repository.buscarPorIdEUsuario(id, usuarioProvider.getUsuarioIdAutenticado())
+                .map(BarbeiroMapper::toResponse)
+                .orElseThrow(() -> new ResourceNotFoundException("Barbeiro não encontrado"));
     }
 
     public BarbeiroResponse atualizar(UUID id, AtualizarBarbeiroRequest dto) {
@@ -67,5 +86,9 @@ public class BarbeiroService {
         atualizado.setUsuarioId(usuarioId);
 
         repository.salvar(atualizado);
+    }
+
+    public void deletar(UUID id) {
+        desativar(id);
     }
 }

@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: barbercontrol
+      POSTGRES_USER: barbercontrol
+      POSTGRES_PASSWORD: barbercontrol
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U barbercontrol -d barbercontrol"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_URL: jdbc:postgresql://postgres:5432/barbercontrol
+      DATABASE_USERNAME: barbercontrol
+      DATABASE_PASSWORD: barbercontrol
+      JWT_SECRET: dev-secret-key-barber-control-at-least-256-bits-long-for-hs256-algorithm
+    ports:
+      - "8080:8080"

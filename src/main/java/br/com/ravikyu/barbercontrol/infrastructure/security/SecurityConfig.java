@@ -27,31 +27,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // CSRF disabled intentionally: this is a stateless REST API using JWT bearer tokens.
-                // CSRF attacks target cookie-based authentication; JWT in Authorization headers is not vulnerable.
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/usuarios/cadastrar", "/usuarios/login").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
-                        // Admin-only: create employees (BARBEIRO/SECRETARIA)
+                        .requestMatchers("/h2-console/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
                         .requestMatchers(HttpMethod.POST, "/usuarios/cadastrar-funcionario").hasRole("ADMIN")
-                        // Client management: ADMIN and SECRETARIA only (BARBEIRO cannot register/update/delete clients)
                         .requestMatchers(HttpMethod.POST, "/clientes").hasAnyRole("ADMIN", "SECRETARIA")
                         .requestMatchers(HttpMethod.PUT, "/clientes/**").hasAnyRole("ADMIN", "SECRETARIA")
                         .requestMatchers(HttpMethod.DELETE, "/clientes/**").hasAnyRole("ADMIN", "SECRETARIA")
-                        // Service management: ADMIN only
                         .requestMatchers(HttpMethod.POST, "/servicos").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/servicos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/servicos/**").hasRole("ADMIN")
-                        // Appointment management: ADMIN and SECRETARIA can create/delete/cancel; BARBEIRO can only read/conclude
                         .requestMatchers(HttpMethod.POST, "/agendamentos").hasAnyRole("ADMIN", "SECRETARIA")
+                        .requestMatchers(HttpMethod.PUT, "/agendamentos/**").hasAnyRole("ADMIN", "SECRETARIA")
                         .requestMatchers(HttpMethod.PATCH, "/agendamentos/*/cancelar").hasAnyRole("ADMIN", "SECRETARIA")
                         .requestMatchers(HttpMethod.DELETE, "/agendamentos/**").hasAnyRole("ADMIN", "SECRETARIA")
-                        // Barber profile management: ADMIN only
                         .requestMatchers(HttpMethod.POST, "/barbeiros").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/barbeiros/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/barbeiros/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/barbeiros/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(fo -> fo.sameOrigin()))
