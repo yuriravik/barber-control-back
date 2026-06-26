@@ -44,3 +44,8 @@ Funcionalidade: Gerenciamento de Agendamentos
   Cenário: Não deve criar agendamento com serviço inexistente
     Quando eu crio um agendamento para o cliente e barbeiro criados com servicoId "00000000-0000-0000-0000-000000000099" e data "2026-12-06T10:00:00"
     Então o status da resposta deve ser 404
+
+  Cenário: Não deve criar agendamento com conflito de horário para o mesmo barbeiro
+    Dado que existe um agendamento criado para o cliente, barbeiro e serviço em "2026-12-07T10:00:00"
+    Quando eu crio um agendamento para o cliente, barbeiro e serviço criados com data "2026-12-07T10:15:00"
+    Então o status da resposta deve ser 409

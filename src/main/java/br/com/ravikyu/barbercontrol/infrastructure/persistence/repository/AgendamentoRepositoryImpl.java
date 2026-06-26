@@ -128,6 +128,11 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
     }
 
     @Override
+    public boolean existeConflitoHorario(UUID barbeiroId, LocalDateTime dataHoraInicio, LocalDateTime dataHoraFim) {
+        return jpaRepository.existsConflitoHorario(barbeiroId, dataHoraInicio, dataHoraFim);
+    }
+
+    @Override
     public void deletar(UUID id) {
         jpaRepository.deleteById(id);
     }

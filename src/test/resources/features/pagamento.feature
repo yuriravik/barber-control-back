@@ -57,3 +57,13 @@ Funcionalidade: Gerenciamento de Pagamentos
   Cenário: Não deve encontrar pagamento com ID inexistente
     Quando eu busco o pagamento com ID "00000000-0000-0000-0000-000000000099"
     Então o status da resposta deve ser 404
+
+  Cenário: Não deve permitir leitura de pagamento entre tenants diferentes
+    Dado que existe um agendamento de pagamento criado para o cliente, barbeiro e serviço em "2026-12-16T10:00:00"
+    E que já existe um pagamento registrado para o agendamento criado com valor 70 e forma "PIX"
+    E que estou autenticado como "pagamentos_outro_tenant@barbearia.com" com senha "senha123" e role "ADMIN"
+    Quando eu busco o pagamento pelo ID criado
+    Então o status da resposta deve ser 404
+    Quando eu listo os pagamentos
+    Então o status da resposta deve ser 200
+    E a lista de resposta deve ter tamanho 0
