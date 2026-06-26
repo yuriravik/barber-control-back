@@ -49,6 +49,13 @@ public class CommonSteps {
         assertTrue(body.trim().startsWith("["), "Expected JSON array but got: " + body);
     }
 
+    @Then("a lista de resposta deve ter tamanho {int}")
+    public void aListaDeRespostaDeveTerTamanho(int tamanhoEsperado) throws Exception {
+        JsonNode root = objectMapper.readTree(scenarioContext.getLastResponseBody());
+        assertTrue(root.isArray(), "Expected JSON array but got: " + scenarioContext.getLastResponseBody());
+        assertEquals(tamanhoEsperado, root.size(), "Unexpected list size");
+    }
+
     @Then("a resposta deve conter um token JWT")
     public void aRespostaDeveConterUmTokenJWT() throws Exception {
         JsonNode root = objectMapper.readTree(scenarioContext.getLastResponseBody());

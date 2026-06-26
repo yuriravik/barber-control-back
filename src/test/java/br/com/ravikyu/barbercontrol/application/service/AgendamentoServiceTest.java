@@ -14,6 +14,7 @@ import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
+import br.com.ravikyu.barbercontrol.infrastructure.web.exception.AgendamentoException;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.DisplayName;
@@ -166,6 +167,25 @@ class AgendamentoServiceTest {
     }
 
     @Test
+    @DisplayName("deveLancarExcecaoAoCriarAgendamentoComConflitoDeHorario")
+    void deveLancarExcecaoAoCriarAgendamentoComConflitoDeHorario() {
+        var barbeiroId = UUID.randomUUID();
+        var servico = servicoValido(30);
+        servico.setId(UUID.randomUUID());
+        var request = new CriarAgendamentoRequest(
+                UUID.randomUUID(), barbeiroId, servico.getId(), DATA_HORA);
+
+        when(servicoRepository.buscarPorId(servico.getId())).thenReturn(Optional.of(servico));
+        when(repository.existeConflitoHorario(barbeiroId, DATA_HORA, DATA_HORA.plusMinutes(30)))
+                .thenReturn(true);
+
+        var ex = assertThrows(AgendamentoException.class, () -> service.criar(request));
+
+        assertEquals("Já existe um agendamento neste horário para o barbeiro informado", ex.getMessage());
+        verify(repository, never()).salvar(any());
+    }
+
+    @Test
     @DisplayName("deveListarAgendamentosDoAdminComSucesso")
     void deveListarAgendamentosDoAdminComSucesso() {
         var adminId = UUID.randomUUID();
@@ -305,4 +325,3 @@ class AgendamentoServiceTest {
         verify(repository, times(1)).deletar(id);
     }
 }
-

@@ -22,5 +22,7 @@ public interface AgendamentoRepository {
     List<Agendamento> listarComFiltros(List<UUID> barbeiroIds, UUID barbeiroId, UUID servicoId,
                                        LocalDateTime dataInicio, LocalDateTime dataFim);
 
+    boolean existeConflitoHorario(UUID barbeiroId, LocalDateTime dataHoraInicio, LocalDateTime dataHoraFim);
+
     void deletar(UUID id);
 }

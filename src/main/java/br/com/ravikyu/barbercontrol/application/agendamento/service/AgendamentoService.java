@@ -11,6 +11,7 @@ import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
+import br.com.ravikyu.barbercontrol.infrastructure.web.exception.AgendamentoException;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,10 @@ public class AgendamentoService {
         agenda.setDataHoraFim(
                 agenda.getDataHoraInicio().plusMinutes(servico.getDuracaoMinutos())
         );
+
+        if (repository.existeConflitoHorario(agenda.getBarbeiroId(), agenda.getDataHoraInicio(), agenda.getDataHoraFim())) {
+            throw new AgendamentoException("Já existe um agendamento neste horário para o barbeiro informado");
+        }
 
         var id = repository.salvar(agenda).getId();
         return buscar(id);
