@@ -107,7 +107,10 @@ public class AgendamentoService {
 
         var usuario = usuarioProvider.getUsuarioAutenticado();
         if (usuario.getRole() == Role.BARBEIRO) {
-            if (usuario.getBarbeiroId() == null || !usuario.getBarbeiroId().equals(agendamento.getBarbeiroId())) {
+            // A BARBEIRO user without a linked barbeiroId has no appointments, and must not conclude others'
+            boolean semVinculo = usuario.getBarbeiroId() == null;
+            boolean agendamentoDeOutro = !semVinculo && !usuario.getBarbeiroId().equals(agendamento.getBarbeiroId());
+            if (semVinculo || agendamentoDeOutro) {
                 throw new BusinessException("Barbeiro só pode concluir seus próprios agendamentos");
             }
         }
