@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.application.barbeiro.service;
 
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.AtualizarBarbeiroRequest;
 import br.com.ravikyu.barbercontrol.application.barbeiro.dto.BarbeiroResponse;
 import br.com.ravikyu.barbercontrol.application.barbeiro.dto.CriarBarbeiroRequest;
 import br.com.ravikyu.barbercontrol.application.barbeiro.mapper.BarbeiroMapper;
@@ -32,6 +33,23 @@ public class BarbeiroService {
                 .stream()
                 .map(BarbeiroMapper::toResponse)
                 .toList();
+    }
+
+    public BarbeiroResponse atualizar(UUID id, AtualizarBarbeiroRequest dto) {
+        var usuarioId = usuarioProvider.getUsuarioIdAutenticado();
+        var existente = repository.buscarPorIdEUsuario(id, usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Barbeiro não encontrado"));
+
+        var atualizado = new Barbeiro(
+                existente.getId(),
+                dto.nome(),
+                dto.especialidade(),
+                dto.percentualComissao(),
+                existente.isAtivo()
+        );
+        atualizado.setUsuarioId(usuarioId);
+
+        return BarbeiroMapper.toResponse(repository.salvar(atualizado));
     }
 
     public void desativar(UUID id) {

@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.AtualizarBarbeiroRequest;
 import br.com.ravikyu.barbercontrol.application.barbeiro.dto.BarbeiroResponse;
 import br.com.ravikyu.barbercontrol.application.barbeiro.dto.CriarBarbeiroRequest;
 import br.com.ravikyu.barbercontrol.application.barbeiro.service.BarbeiroService;
@@ -27,6 +28,11 @@ public class BarbeiroController {
     @GetMapping
     public List<BarbeiroResponse> listar() {
         return service.listar();
+    }
+
+    @PutMapping("/{id}")
+    public BarbeiroResponse atualizar(@PathVariable UUID id, @RequestBody @Valid AtualizarBarbeiroRequest dto) {
+        return service.atualizar(id, dto);
     }
 
     @PatchMapping("/{id}/desativar")

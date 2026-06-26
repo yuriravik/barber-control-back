@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.application.service;
 
+import br.com.ravikyu.barbercontrol.application.servico.dto.AtualizarServicoRequest;
 import br.com.ravikyu.barbercontrol.application.servico.dto.CriarServicoRequest;
 import br.com.ravikyu.barbercontrol.application.servico.dto.ServicoResponse;
 import br.com.ravikyu.barbercontrol.application.servico.service.ServicoService;
@@ -16,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -127,6 +129,53 @@ class ServicoServiceTest {
         var ex = assertThrows(ResourceNotFoundException.class, () -> service.buscar(id));
 
         assertEquals("Serviço não encontrado", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("deveAtualizarServicoComSucesso")
+    void deveAtualizarServicoComSucesso() {
+        var servico = Instancio.create(Servico.class);
+        var dto = new AtualizarServicoRequest("Nome Atualizado", "Desc", new BigDecimal("50.00"), 60);
+
+        when(repository.buscarPorIdEUsuario(servico.getId(), usuarioId)).thenReturn(Optional.of(servico));
+        when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var response = service.atualizar(servico.getId(), dto);
+
+        assertNotNull(response);
+        assertEquals("Nome Atualizado", response.nome());
+        assertEquals(new BigDecimal("50.00"), response.preco());
+        verify(repository).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveLancarExcecaoAoAtualizarServicoNaoEncontrado")
+    void deveLancarExcecaoAoAtualizarServicoNaoEncontrado() {
+        var id = UUID.randomUUID();
+        var dto = new AtualizarServicoRequest("Nome", null, new BigDecimal("30.00"), 30);
+
+        when(repository.buscarPorIdEUsuario(id, usuarioId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(ResourceNotFoundException.class, () -> service.atualizar(id, dto));
+
+        assertEquals("Serviço não encontrado", ex.getMessage());
+        verify(repository, never()).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveManterAtivoAoAtualizarServico")
+    void deveManterAtivoAoAtualizarServico() {
+        var servico = Instancio.of(Servico.class)
+                .set(field(Servico.class, "ativo"), true)
+                .create();
+        var dto = new AtualizarServicoRequest("Novo Nome", null, new BigDecimal("20.00"), 15);
+
+        when(repository.buscarPorIdEUsuario(servico.getId(), usuarioId)).thenReturn(Optional.of(servico));
+        when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        service.atualizar(servico.getId(), dto);
+
+        verify(repository).salvar(argThat(s -> s.isAtivo() == servico.isAtivo()));
     }
 
     @Test

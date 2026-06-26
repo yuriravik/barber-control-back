@@ -36,17 +36,21 @@ public class SecurityConfig {
                         .requestMatchers("/h2-console/**").permitAll()
                         // Admin-only: create employees (BARBEIRO/SECRETARIA)
                         .requestMatchers(HttpMethod.POST, "/usuarios/cadastrar-funcionario").hasRole("ADMIN")
-                        // Client management: ADMIN and SECRETARIA only (BARBEIRO cannot register/delete clients)
+                        // Client management: ADMIN and SECRETARIA only (BARBEIRO cannot register/update/delete clients)
                         .requestMatchers(HttpMethod.POST, "/clientes").hasAnyRole("ADMIN", "SECRETARIA")
+                        .requestMatchers(HttpMethod.PUT, "/clientes/**").hasAnyRole("ADMIN", "SECRETARIA")
                         .requestMatchers(HttpMethod.DELETE, "/clientes/**").hasAnyRole("ADMIN", "SECRETARIA")
                         // Service management: ADMIN only
                         .requestMatchers(HttpMethod.POST, "/servicos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/servicos/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/servicos/**").hasRole("ADMIN")
-                        // Appointment management: ADMIN and SECRETARIA can create/delete; BARBEIRO can only read
+                        // Appointment management: ADMIN and SECRETARIA can create/delete/cancel; BARBEIRO can only read/conclude
                         .requestMatchers(HttpMethod.POST, "/agendamentos").hasAnyRole("ADMIN", "SECRETARIA")
+                        .requestMatchers(HttpMethod.PATCH, "/agendamentos/*/cancelar").hasAnyRole("ADMIN", "SECRETARIA")
                         .requestMatchers(HttpMethod.DELETE, "/agendamentos/**").hasAnyRole("ADMIN", "SECRETARIA")
                         // Barber profile management: ADMIN only
                         .requestMatchers(HttpMethod.POST, "/barbeiros").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/barbeiros/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/barbeiros/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

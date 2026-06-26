@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.application.service;
 
+import br.com.ravikyu.barbercontrol.application.barbeiro.dto.AtualizarBarbeiroRequest;
 import br.com.ravikyu.barbercontrol.application.barbeiro.dto.CriarBarbeiroRequest;
 import br.com.ravikyu.barbercontrol.application.barbeiro.service.BarbeiroService;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
@@ -95,6 +96,52 @@ class BarbeiroServiceTest {
 
         assertNotNull(response);
         assertTrue(response.isEmpty());
+    }
+
+    @Test
+    @DisplayName("deveAtualizarBarbeiroComSucesso")
+    void deveAtualizarBarbeiroComSucesso() {
+        var barbeiro = barbeiroValido();
+        var dto = new AtualizarBarbeiroRequest("Novo Nome", "Nova Especialidade", new BigDecimal("25.00"));
+
+        when(repository.buscarPorIdEUsuario(barbeiro.getId(), usuarioId)).thenReturn(Optional.of(barbeiro));
+        when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var response = service.atualizar(barbeiro.getId(), dto);
+
+        assertNotNull(response);
+        assertEquals("Novo Nome", response.nome());
+        assertEquals("Nova Especialidade", response.especialidade());
+        assertEquals(new BigDecimal("25.00"), response.percentualComissao());
+        verify(repository).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveLancarExcecaoAoAtualizarBarbeiroNaoEncontrado")
+    void deveLancarExcecaoAoAtualizarBarbeiroNaoEncontrado() {
+        var id = UUID.randomUUID();
+        var dto = new AtualizarBarbeiroRequest("Nome", "Esp", BigDecimal.TEN);
+
+        when(repository.buscarPorIdEUsuario(id, usuarioId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(ResourceNotFoundException.class, () -> service.atualizar(id, dto));
+
+        assertEquals("Barbeiro não encontrado", ex.getMessage());
+        verify(repository, never()).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveManterAtivoAoAtualizar")
+    void deveManterAtivoAoAtualizar() {
+        var barbeiro = barbeiroValido();
+        var dto = new AtualizarBarbeiroRequest("Nome Atualizado", null, new BigDecimal("10.00"));
+
+        when(repository.buscarPorIdEUsuario(barbeiro.getId(), usuarioId)).thenReturn(Optional.of(barbeiro));
+        when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        service.atualizar(barbeiro.getId(), dto);
+
+        verify(repository).salvar(argThat(b -> b.isAtivo() == barbeiro.isAtivo()));
     }
 
     @Test

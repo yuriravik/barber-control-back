@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.instancio.Select.field;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -124,6 +125,32 @@ class AgendamentoControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.message").value("Agendamento não encontrado"));
+    }
+
+    @Test
+    @DisplayName("deveConcluirAgendamentoComSucesso")
+    void deveConcluirAgendamentoComSucesso() throws Exception {
+        var id = Instancio.create(UUID.class);
+
+        doNothing().when(service).concluir(id);
+
+        mockMvc.perform(patch("/agendamentos/{id}/concluir", id))
+                .andExpect(status().isNoContent());
+
+        verify(service, times(1)).concluir(id);
+    }
+
+    @Test
+    @DisplayName("deveCancelarAgendamentoComSucesso")
+    void deveCancelarAgendamentoComSucesso() throws Exception {
+        var id = Instancio.create(UUID.class);
+
+        doNothing().when(service).cancelar(id);
+
+        mockMvc.perform(patch("/agendamentos/{id}/cancelar", id))
+                .andExpect(status().isNoContent());
+
+        verify(service, times(1)).cancelar(id);
     }
 
     @Test

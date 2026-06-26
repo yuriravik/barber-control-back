@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
+import br.com.ravikyu.barbercontrol.application.servico.dto.AtualizarServicoRequest;
 import br.com.ravikyu.barbercontrol.application.servico.dto.CriarServicoRequest;
 import br.com.ravikyu.barbercontrol.application.servico.dto.ServicoResponse;
 import br.com.ravikyu.barbercontrol.application.servico.service.ServicoService;
@@ -32,6 +33,11 @@ public class ServicoController {
     @GetMapping("/{id}")
     public ServicoResponse buscar(@PathVariable UUID id) {
         return service.buscar(id);
+    }
+
+    @PutMapping("/{id}")
+    public ServicoResponse atualizar(@PathVariable UUID id, @RequestBody @Valid AtualizarServicoRequest dto) {
+        return service.atualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")

@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
+import br.com.ravikyu.barbercontrol.application.cliente.dto.AtualizarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
 import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
@@ -32,6 +33,11 @@ public class ClienteController {
     @GetMapping("/{id}")
     public ClienteResponse buscar(@PathVariable UUID id) {
         return service.buscar(id);
+    }
+
+    @PutMapping("/{id}")
+    public ClienteResponse atualizar(@PathVariable UUID id, @RequestBody @Valid AtualizarClienteRequest dto) {
+        return service.atualizar(id, dto);
     }
 
     @DeleteMapping("/{id}")

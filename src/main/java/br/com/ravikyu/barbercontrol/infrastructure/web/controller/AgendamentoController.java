@@ -34,6 +34,18 @@ public class AgendamentoController {
         return service.buscar(id);
     }
 
+    @PatchMapping("/{id}/concluir")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void concluir(@PathVariable UUID id) {
+        service.concluir(id);
+    }
+
+    @PatchMapping("/{id}/cancelar")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelar(@PathVariable UUID id) {
+        service.cancelar(id);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletar(@PathVariable UUID id) {
