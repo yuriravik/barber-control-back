@@ -30,11 +30,12 @@ public interface AgendamentoJpaRepository extends JpaRepository<AgendamentoEntit
 
     @Query("SELECT COUNT(a) > 0 FROM AgendamentoEntity a WHERE " +
            "a.barbeiroId = :barbeiroId AND " +
-           "a.status = 'AGENDADO' AND " +
+           "a.status = :status AND " +
            "a.dataHoraInicio < :dataHoraFim AND " +
            "a.dataHoraFim > :dataHoraInicio")
     boolean existsConflitoHorario(
             @Param("barbeiroId") UUID barbeiroId,
+            @Param("status") String status,
             @Param("dataHoraInicio") LocalDateTime dataHoraInicio,
             @Param("dataHoraFim") LocalDateTime dataHoraFim);
 }

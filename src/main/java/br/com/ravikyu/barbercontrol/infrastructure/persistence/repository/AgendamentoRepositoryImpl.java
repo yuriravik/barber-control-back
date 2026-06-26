@@ -129,7 +129,8 @@ public class AgendamentoRepositoryImpl implements AgendamentoRepository {
 
     @Override
     public boolean existeConflitoHorario(UUID barbeiroId, LocalDateTime dataHoraInicio, LocalDateTime dataHoraFim) {
-        return jpaRepository.existsConflitoHorario(barbeiroId, dataHoraInicio, dataHoraFim);
+        return jpaRepository.existsConflitoHorario(barbeiroId, StatusAgendamento.AGENDADO.name(),
+                dataHoraInicio, dataHoraFim);
     }
 
     @Override
