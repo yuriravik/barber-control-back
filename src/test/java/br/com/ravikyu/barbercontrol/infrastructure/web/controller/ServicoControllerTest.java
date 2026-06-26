@@ -20,6 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.instancio.Select.field;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -110,6 +111,54 @@ class ServicoControllerTest {
         mockMvc.perform(get("/servicos/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Serviço não encontrado"));
+    }
+
+    @Test
+    @DisplayName("deveAtualizarServicoComSucesso")
+    void deveAtualizarServicoComSucesso() throws Exception {
+        var servico = Instancio.of(ServicoResponse.class)
+                .set(field(ServicoResponse.class, "ativo"), true)
+                .create();
+        var id = servico.id();
+
+        when(service.atualizar(eq(id), any())).thenReturn(servico);
+
+        mockMvc.perform(put("/servicos/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "nome": "Corte Atualizado",
+                                    "descricao": "Corte moderno",
+                                    "preco": 40.00,
+                                    "duracaoMinutos": 45
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.nome").value(servico.nome()));
+
+        verify(service, times(1)).atualizar(eq(id), any());
+    }
+
+    @Test
+    @DisplayName("deveRetornar404AoAtualizarServicoNaoEncontrado")
+    void deveRetornar404AoAtualizarServicoNaoEncontrado() throws Exception {
+        var id = Instancio.create(java.util.UUID.class);
+
+        when(service.atualizar(eq(id), any())).thenThrow(new ResourceNotFoundException("Serviço não encontrado"));
+
+        mockMvc.perform(put("/servicos/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "nome": "Corte Atualizado",
+                                    "descricao": "Corte moderno",
+                                    "preco": 40.00,
+                                    "duracaoMinutos": 45
+                                }
+                                """))
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Serviço não encontrado"));
     }
 

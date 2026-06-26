@@ -12,6 +12,14 @@ Backend REST API para controle financeiro e operacional de barbearias. Gerencia 
 - [Banco de Dados](#banco-de-dados)
 - [Segurança e Permissões](#segurança-e-permissões)
 - [Endpoints da API](#endpoints-da-api)
+  - [Usuários](#usuários----usuarios)
+  - [Barbeiros](#barbeiros----barbeiros)
+  - [Clientes](#clientes----clientes)
+  - [Serviços](#serviços----servicos)
+  - [Agendamentos](#agendamentos----agendamentos)
+  - [Pagamentos](#pagamentos----pagamentos)
+  - [Dashboard](#dashboard----dashboard)
+  - [Relatórios](#relatórios----relatorios)
 - [Configuração e Variáveis de Ambiente](#configuração-e-variáveis-de-ambiente)
 - [Como Executar](#como-executar)
 - [Testes](#testes)
@@ -190,16 +198,23 @@ O token é obtido no endpoint `POST /usuarios/login` e tem validade padrão de *
 | Cadastrar funcionário (BARBEIRO/SECRETARIA) | ✅ | ❌ | ❌ |
 | Visualizar próprio perfil (`/me`) | ✅ | ✅ | ✅ |
 | Criar / Deletar barbeiro | ✅ | ❌ | ❌ |
+| Atualizar barbeiro | ✅ | ❌ | ❌ |
 | Desativar barbeiro | ✅ | ❌ | ❌ |
 | Listar barbeiros | ✅ | ✅ | ✅ |
 | Criar / Deletar serviço | ✅ | ❌ | ❌ |
+| Atualizar serviço | ✅ | ❌ | ❌ |
 | Listar / Visualizar serviço | ✅ | ✅ | ✅ |
 | Criar / Deletar cliente | ✅ | ✅ | ❌ |
+| Atualizar cliente | ✅ | ✅ | ❌ |
 | Listar / Visualizar cliente | ✅ | ✅ | ✅ |
 | Criar / Deletar agendamento | ✅ | ✅ | ❌ |
+| Concluir agendamento | ✅ | ✅ | ✅ (próprio) |
+| Cancelar agendamento | ✅ | ✅ | ❌ |
 | Listar agendamentos | ✅ (todos) | ✅ (do admin) | ✅ (próprios) |
 | Registrar pagamento | ✅ | ✅ | ✅ |
 | Listar / Visualizar pagamento | ✅ | ✅ | ✅ |
+| Dashboard | ✅ | ✅ | ✅ |
+| Relatórios de agendamentos e financeiros | ✅ | ✅ | ✅ |
 
 > **Multi-tenancy**: cada ADMIN possui seu próprio espaço de dados. Secretárias e barbeiros vinculados a um ADMIN só acessam dados desse ADMIN.
 
@@ -333,6 +348,22 @@ Desativa um barbeiro (soft delete).
 
 ---
 
+#### `PUT /barbeiros/{id}` — 🔒 ADMIN
+Atualiza os dados de um barbeiro.
+
+**Request Body**:
+```json
+{
+  "nome": "João Silva",
+  "especialidade": "Corte e Barba",
+  "percentualComissao": 45.0
+}
+```
+
+**Response `200 OK`**: `BarbeiroResponse`
+
+---
+
 ### Clientes — `/clientes`
 
 #### `POST /clientes` — 🔒 ADMIN, SECRETARIA
@@ -377,6 +408,22 @@ Retorna um cliente pelo ID.
 Remove um cliente.
 
 **Response `204 No Content`**
+
+---
+
+#### `PUT /clientes/{id}` — 🔒 ADMIN, SECRETARIA
+Atualiza os dados de um cliente.
+
+**Request Body**:
+```json
+{
+  "nome": "Maria Oliveira",
+  "email": "maria@email.com",
+  "telefone": "11988888888"
+}
+```
+
+**Response `200 OK`**: `ClienteResponse`
 
 ---
 
@@ -427,6 +474,23 @@ Retorna um serviço pelo ID.
 Remove um serviço.
 
 **Response `204 No Content`**
+
+---
+
+#### `PUT /servicos/{id}` — 🔒 ADMIN
+Atualiza os dados de um serviço.
+
+**Request Body**:
+```json
+{
+  "nome": "Corte Degradê",
+  "descricao": "Corte moderno com máquina",
+  "preco": 50.00,
+  "duracaoMinutos": 50
+}
+```
+
+**Response `200 OK`**: `ServicoResponse`
 
 ---
 
@@ -484,6 +548,20 @@ Remove um agendamento.
 
 ---
 
+#### `PATCH /agendamentos/{id}/concluir` — 🔒 ADMIN, SECRETARIA, BARBEIRO
+Marca um agendamento como concluído. O status atual deve ser `AGENDADO`. Barbeiros só podem concluir seus próprios agendamentos.
+
+**Response `204 No Content`**
+
+---
+
+#### `PATCH /agendamentos/{id}/cancelar` — 🔒 ADMIN, SECRETARIA
+Cancela um agendamento. O status atual deve ser `AGENDADO`.
+
+**Response `204 No Content`**
+
+---
+
 ### Pagamentos — `/pagamentos`
 
 #### `POST /pagamentos` — 🔒 ADMIN, SECRETARIA, BARBEIRO
@@ -524,6 +602,63 @@ Lista todos os pagamentos.
 Retorna um pagamento pelo ID.
 
 **Response `200 OK`**: `PagamentoResponse`
+
+---
+
+### Dashboard — `/dashboard`
+
+#### `GET /dashboard` — 🔒 ADMIN, SECRETARIA, BARBEIRO
+Retorna um resumo do sistema com dados do usuário autenticado e os registros acessíveis (clientes, barbeiros, serviços e agendamentos).
+
+**Response `200 OK`**:
+```json
+{
+  "usuario": { "id": "uuid", "email": "admin@barbearia.com", "role": "ADMIN" },
+  "clientes": [...],
+  "barbeiros": [...],
+  "servicos": [...],
+  "agendamentos": [...]
+}
+```
+
+---
+
+### Relatórios — `/relatorios`
+
+#### `GET /relatorios/agendamentos` — 🔒 ADMIN, SECRETARIA, BARBEIRO
+Gera relatório de agendamentos com filtros opcionais.
+
+**Query params** (todos opcionais):
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `dataInicio` | `YYYY-MM-DD` | Data inicial do período |
+| `dataFim` | `YYYY-MM-DD` | Data final do período |
+| `barbeiroId` | UUID | Filtrar por barbeiro |
+| `servicoId` | UUID | Filtrar por serviço |
+
+**Response `200 OK`**: `RelatorioAgendamentoResponse`
+
+---
+
+#### `GET /relatorios/financeiro` — 🔒 ADMIN, SECRETARIA, BARBEIRO
+Gera relatório financeiro com totais por forma de pagamento e resumo por barbeiro.
+
+**Query params** (todos opcionais):
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `dataInicio` | `YYYY-MM-DD` | Data inicial do período |
+| `dataFim` | `YYYY-MM-DD` | Data final do período |
+
+**Response `200 OK`**:
+```json
+{
+  "totalRecebido": 1350.00,
+  "quantidadePagamentos": 30,
+  "totalPorFormaPagamento": { "PIX": 800.00, "CARTAO": 400.00, "DINHEIRO": 150.00 },
+  "resumoPorBarbeiro": [...],
+  "pagamentos": [...]
+}
+```
 
 ---
 

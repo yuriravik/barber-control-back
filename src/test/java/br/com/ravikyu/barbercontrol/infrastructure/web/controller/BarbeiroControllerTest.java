@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 
 import static org.instancio.Select.field;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -93,6 +94,50 @@ class BarbeiroControllerTest {
                 .andExpect(jsonPath("$.length()").value(2));
 
         verify(service, times(1)).listar();
+    }
+
+    @Test
+    @DisplayName("deveAtualizarBarbeiroComSucesso")
+    void deveAtualizarBarbeiroComSucesso() throws Exception {
+        var response = responseValido();
+        var id = response.id();
+
+        when(service.atualizar(eq(id), any())).thenReturn(response);
+
+        mockMvc.perform(put("/barbeiros/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "nome": "Carlos Atualizado",
+                                    "especialidade": "Barba",
+                                    "percentualComissao": 30.00
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.nome").value(response.nome()));
+
+        verify(service, times(1)).atualizar(eq(id), any());
+    }
+
+    @Test
+    @DisplayName("deveRetornar404AoAtualizarBarbeiroNaoEncontrado")
+    void deveRetornar404AoAtualizarBarbeiroNaoEncontrado() throws Exception {
+        var id = Instancio.create(java.util.UUID.class);
+
+        when(service.atualizar(eq(id), any())).thenThrow(new ResourceNotFoundException("Barbeiro não encontrado"));
+
+        mockMvc.perform(put("/barbeiros/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "nome": "Carlos Atualizado",
+                                    "especialidade": "Barba",
+                                    "percentualComissao": 30.00
+                                }
+                                """))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Barbeiro não encontrado"));
     }
 
     @Test

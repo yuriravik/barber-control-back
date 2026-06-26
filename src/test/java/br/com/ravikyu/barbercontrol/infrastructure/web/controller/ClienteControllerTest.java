@@ -20,6 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.instancio.Select.field;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -155,6 +156,50 @@ class ClienteControllerTest {
         mockMvc.perform(get("/clientes/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Cliente não encontrado"));
+    }
+
+    @Test
+    @DisplayName("deveAtualizarClienteComSucesso")
+    void deveAtualizarClienteComSucesso() throws Exception {
+        var response = responseValido();
+        var id = response.id();
+
+        when(service.atualizar(eq(id), any())).thenReturn(response);
+
+        mockMvc.perform(put("/clientes/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "nome": "João Atualizado",
+                                    "email": "joao@email.com",
+                                    "telefone": "11988888888"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()))
+                .andExpect(jsonPath("$.nome").value(response.nome()));
+
+        verify(service, times(1)).atualizar(eq(id), any());
+    }
+
+    @Test
+    @DisplayName("deveRetornar404AoAtualizarClienteNaoEncontrado")
+    void deveRetornar404AoAtualizarClienteNaoEncontrado() throws Exception {
+        var id = Instancio.create(java.util.UUID.class);
+
+        when(service.atualizar(eq(id), any())).thenThrow(new ResourceNotFoundException("Cliente não encontrado"));
+
+        mockMvc.perform(put("/clientes/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "nome": "João Atualizado",
+                                    "email": "joao@email.com",
+                                    "telefone": "11988888888"
+                                }
+                                """))
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Cliente não encontrado"));
     }
 

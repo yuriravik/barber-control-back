@@ -1,7 +1,10 @@
 package br.com.ravikyu.barbercontrol.application.cliente.service;
 
-import br.com.ravikyu.barbercontrol.application.cliente.dto.*;
+import br.com.ravikyu.barbercontrol.application.cliente.dto.AtualizarClienteRequest;
+import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
+import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.mapper.ClienteMapper;
+import br.com.ravikyu.barbercontrol.domain.model.Cliente;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
@@ -37,6 +40,17 @@ public class ClienteService {
         var cliente = repository.buscarPorIdEUsuario(id, usuarioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
         return ClienteMapper.toResponse(cliente);
+    }
+
+    public ClienteResponse atualizar(UUID id, AtualizarClienteRequest dto) {
+        var usuarioId = usuarioProvider.getAdminUsuarioIdAutenticado();
+        var existente = repository.buscarPorIdEUsuario(id, usuarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
+
+        var atualizado = new Cliente(existente.getId(), dto.nome(), dto.email(), dto.telefone());
+        atualizado.setUsuarioId(usuarioId);
+
+        return ClienteMapper.toResponse(repository.salvar(atualizado));
     }
 
     public void deletar(UUID id) {

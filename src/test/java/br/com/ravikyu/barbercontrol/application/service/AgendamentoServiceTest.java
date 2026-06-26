@@ -324,4 +324,89 @@ class AgendamentoServiceTest {
 
         verify(repository, times(1)).deletar(id);
     }
+
+    @Test
+    @DisplayName("deveConcluirAgendamentoComSucesso")
+    void deveConcluirAgendamentoComSucesso() {
+        var agendamentoId = UUID.randomUUID();
+        var adminId = UUID.randomUUID();
+        var agendamento = agendamentoSalvo(agendamentoId, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+        var admin = adminValido(adminId);
+
+        when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
+        when(usuarioProvider.getUsuarioAutenticado()).thenReturn(admin);
+        when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        service.concluir(agendamentoId);
+
+        verify(repository).salvar(argThat(a -> a.getStatus() == StatusAgendamento.CONCLUIDO));
+    }
+
+    @Test
+    @DisplayName("deveLancarExcecaoAoConcluirAgendamentoJaCancelado")
+    void deveLancarExcecaoAoConcluirAgendamentoJaCancelado() {
+        var agendamentoId = UUID.randomUUID();
+        var agendamento = agendamentoSalvo(agendamentoId, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+        agendamento.setStatus(StatusAgendamento.CANCELADO);
+
+        when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
+
+        var ex = assertThrows(
+                br.com.ravikyu.barbercontrol.infrastructure.web.exception.BusinessException.class,
+                () -> service.concluir(agendamentoId));
+
+        assertEquals("Apenas agendamentos com status AGENDADO podem ser concluídos", ex.getMessage());
+        verify(repository, never()).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveLancarExcecaoAoConcluirAgendamentoNaoEncontrado")
+    void deveLancarExcecaoAoConcluirAgendamentoNaoEncontrado() {
+        var id = UUID.randomUUID();
+
+        when(repository.buscarPorId(id)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.concluir(id));
+    }
+
+    @Test
+    @DisplayName("deveCancelarAgendamentoComSucesso")
+    void deveCancelarAgendamentoComSucesso() {
+        var agendamentoId = UUID.randomUUID();
+        var agendamento = agendamentoSalvo(agendamentoId, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+
+        when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
+        when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        service.cancelar(agendamentoId);
+
+        verify(repository).salvar(argThat(a -> a.getStatus() == StatusAgendamento.CANCELADO));
+    }
+
+    @Test
+    @DisplayName("deveLancarExcecaoAoCancelarAgendamentoJaConcluido")
+    void deveLancarExcecaoAoCancelarAgendamentoJaConcluido() {
+        var agendamentoId = UUID.randomUUID();
+        var agendamento = agendamentoSalvo(agendamentoId, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+        agendamento.setStatus(StatusAgendamento.CONCLUIDO);
+
+        when(repository.buscarPorId(agendamentoId)).thenReturn(Optional.of(agendamento));
+
+        var ex = assertThrows(
+                br.com.ravikyu.barbercontrol.infrastructure.web.exception.BusinessException.class,
+                () -> service.cancelar(agendamentoId));
+
+        assertEquals("Apenas agendamentos com status AGENDADO podem ser cancelados", ex.getMessage());
+        verify(repository, never()).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveLancarExcecaoAoCancelarAgendamentoNaoEncontrado")
+    void deveLancarExcecaoAoCancelarAgendamentoNaoEncontrado() {
+        var id = UUID.randomUUID();
+
+        when(repository.buscarPorId(id)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> service.cancelar(id));
+    }
 }

@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.application.service;
 
+import br.com.ravikyu.barbercontrol.application.cliente.dto.AtualizarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
 import br.com.ravikyu.barbercontrol.domain.model.Cliente;
@@ -144,6 +145,37 @@ class ClienteServiceTest {
         var ex = assertThrows(ResourceNotFoundException.class, () -> service.buscar(id));
 
         assertEquals("Cliente não encontrado", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("deveAtualizarClienteComSucesso")
+    void deveAtualizarClienteComSucesso() {
+        var cliente = clienteValido();
+        var dto = new AtualizarClienteRequest("Nome Atualizado", "novo@email.com", "11977777777");
+
+        when(repository.buscarPorIdEUsuario(cliente.getId(), usuarioId)).thenReturn(Optional.of(cliente));
+        when(repository.salvar(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var response = service.atualizar(cliente.getId(), dto);
+
+        assertNotNull(response);
+        assertEquals("Nome Atualizado", response.nome());
+        assertEquals("novo@email.com", response.email());
+        verify(repository).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveLancarExcecaoAoAtualizarClienteNaoEncontrado")
+    void deveLancarExcecaoAoAtualizarClienteNaoEncontrado() {
+        var id = UUID.randomUUID();
+        var dto = new AtualizarClienteRequest("Nome", "email@test.com", null);
+
+        when(repository.buscarPorIdEUsuario(id, usuarioId)).thenReturn(Optional.empty());
+
+        var ex = assertThrows(ResourceNotFoundException.class, () -> service.atualizar(id, dto));
+
+        assertEquals("Cliente não encontrado", ex.getMessage());
+        verify(repository, never()).salvar(any());
     }
 
     @Test

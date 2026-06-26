@@ -6,12 +6,14 @@ import br.com.ravikyu.barbercontrol.application.agendamento.mapper.AgendamentoMa
 import br.com.ravikyu.barbercontrol.domain.model.Agendamento;
 import br.com.ravikyu.barbercontrol.domain.model.Barbeiro;
 import br.com.ravikyu.barbercontrol.domain.model.enuns.Role;
+import br.com.ravikyu.barbercontrol.domain.model.enuns.StatusAgendamento;
 import br.com.ravikyu.barbercontrol.domain.repository.AgendamentoRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.BarbeiroRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ClienteRepository;
 import br.com.ravikyu.barbercontrol.domain.repository.ServicoRepository;
 import br.com.ravikyu.barbercontrol.infrastructure.security.UsuarioAutenticadoProvider;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.AgendamentoException;
+import br.com.ravikyu.barbercontrol.infrastructure.web.exception.BusinessException;
 import br.com.ravikyu.barbercontrol.infrastructure.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -93,6 +95,37 @@ public class AgendamentoService {
                 agendamento.getDataHoraFim(),
                 agendamento.getStatus().name()
         );
+    }
+
+    public void concluir(UUID id) {
+        var agendamento = repository.buscarPorId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+
+        if (agendamento.getStatus() != StatusAgendamento.AGENDADO) {
+            throw new BusinessException("Apenas agendamentos com status AGENDADO podem ser concluídos");
+        }
+
+        var usuario = usuarioProvider.getUsuarioAutenticado();
+        if (usuario.getRole() == Role.BARBEIRO) {
+            if (usuario.getBarbeiroId() == null || !usuario.getBarbeiroId().equals(agendamento.getBarbeiroId())) {
+                throw new BusinessException("Barbeiro só pode concluir seus próprios agendamentos");
+            }
+        }
+
+        agendamento.setStatus(StatusAgendamento.CONCLUIDO);
+        repository.salvar(agendamento);
+    }
+
+    public void cancelar(UUID id) {
+        var agendamento = repository.buscarPorId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+
+        if (agendamento.getStatus() != StatusAgendamento.AGENDADO) {
+            throw new BusinessException("Apenas agendamentos com status AGENDADO podem ser cancelados");
+        }
+
+        agendamento.setStatus(StatusAgendamento.CANCELADO);
+        repository.salvar(agendamento);
     }
 
     public void deletar(UUID id) {
