@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.infrastructure.web.controller;
 
+import br.com.ravikyu.barbercontrol.application.common.dto.PageResponse;
 import br.com.ravikyu.barbercontrol.application.servico.dto.AtualizarServicoRequest;
 import br.com.ravikyu.barbercontrol.application.servico.dto.CriarServicoRequest;
 import br.com.ravikyu.barbercontrol.application.servico.dto.ServicoResponse;
@@ -28,6 +29,15 @@ public class ServicoController {
     @GetMapping
     public List<ServicoResponse> listar() {
         return service.listar();
+    }
+
+    @GetMapping("/busca")
+    public PageResponse<ServicoResponse> buscarPaginado(
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) Boolean ativo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return service.buscarPaginado(nome, ativo, page, size);
     }
 
     @GetMapping("/{id}")

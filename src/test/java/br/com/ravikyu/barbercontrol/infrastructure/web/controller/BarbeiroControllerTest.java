@@ -97,6 +97,20 @@ class BarbeiroControllerTest {
     }
 
     @Test
+    @DisplayName("deveBuscarBarbeiroPorIdComSucesso")
+    void deveBuscarBarbeiroPorIdComSucesso() throws Exception {
+        var response = responseValido();
+
+        when(service.buscar(response.id())).thenReturn(response);
+
+        mockMvc.perform(get("/barbeiros/{id}", response.id()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(response.id().toString()));
+
+        verify(service).buscar(response.id());
+    }
+
+    @Test
     @DisplayName("deveAtualizarBarbeiroComSucesso")
     void deveAtualizarBarbeiroComSucesso() throws Exception {
         var response = responseValido();
@@ -151,6 +165,19 @@ class BarbeiroControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(service, times(1)).desativar(id);
+    }
+
+    @Test
+    @DisplayName("deveDeletarBarbeiroComSucesso")
+    void deveDeletarBarbeiroComSucesso() throws Exception {
+        var id = Instancio.create(java.util.UUID.class);
+
+        doNothing().when(service).deletar(id);
+
+        mockMvc.perform(delete("/barbeiros/{id}", id))
+                .andExpect(status().isNoContent());
+
+        verify(service).deletar(id);
     }
 
     @Test

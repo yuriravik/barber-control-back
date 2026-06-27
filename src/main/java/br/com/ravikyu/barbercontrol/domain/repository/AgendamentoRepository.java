@@ -24,5 +24,8 @@ public interface AgendamentoRepository {
 
     boolean existeConflitoHorario(UUID barbeiroId, LocalDateTime dataHoraInicio, LocalDateTime dataHoraFim);
 
+    boolean existeConflitoHorarioExceto(UUID agendamentoId, UUID barbeiroId, LocalDateTime dataHoraInicio,
+                                        LocalDateTime dataHoraFim);
+
     void deletar(UUID id);
 }

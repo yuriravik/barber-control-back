@@ -128,6 +128,33 @@ class AgendamentoControllerTest {
     }
 
     @Test
+    @DisplayName("deveAtualizarAgendamentoComSucesso")
+    void deveAtualizarAgendamentoComSucesso() throws Exception {
+        var response = responseValido();
+        var clienteId = UUID.randomUUID();
+        var barbeiroId = UUID.randomUUID();
+        var servicoId = UUID.randomUUID();
+        var dataHora = LocalDateTime.now().plusDays(2);
+
+        when(service.atualizar(eq(response.id()), any())).thenReturn(response);
+
+        mockMvc.perform(put("/agendamentos/{id}", response.id())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(String.format("""
+                                {
+                                    "clienteId": "%s",
+                                    "barbeiroId": "%s",
+                                    "servicoId": "%s",
+                                    "dataHora": "%s"
+                                }
+                                """, clienteId, barbeiroId, servicoId, dataHora)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(response.id().toString()));
+
+        verify(service).atualizar(eq(response.id()), any());
+    }
+
+    @Test
     @DisplayName("deveConcluirAgendamentoComSucesso")
     void deveConcluirAgendamentoComSucesso() throws Exception {
         var id = Instancio.create(UUID.class);

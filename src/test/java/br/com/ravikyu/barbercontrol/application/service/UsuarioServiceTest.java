@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.application.service;
 
+import br.com.ravikyu.barbercontrol.application.usuario.dto.AlterarSenhaRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastrarFuncionarioRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastroRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.service.UsuarioService;
@@ -121,6 +122,35 @@ class UsuarioServiceTest {
 
         assertEquals("Usuários com role ADMIN não podem ser vinculados a outro administrador", ex.getMessage());
         verify(repository, never()).salvar(any());
+    }
+
+    @Test
+    @DisplayName("deveRenovarTokenComSucesso")
+    void deveRenovarTokenComSucesso() {
+        var usuario = adminValido();
+        usuario.setEmail("admin@barbearia.com");
+
+        when(usuarioAutenticadoProvider.getUsuarioAutenticado()).thenReturn(usuario);
+        when(tokenProvider.gerarToken(usuario.getEmail())).thenReturn("token-novo");
+
+        var response = service.refreshToken();
+
+        assertEquals("token-novo", response.token());
+    }
+
+    @Test
+    @DisplayName("deveAlterarSenhaComSucesso")
+    void deveAlterarSenhaComSucesso() {
+        var usuario = adminValido();
+        usuario.setSenha("hash-antigo");
+
+        when(usuarioAutenticadoProvider.getUsuarioAutenticado()).thenReturn(usuario);
+        when(passwordEncoder.matches("senha123", "hash-antigo")).thenReturn(true);
+        when(passwordEncoder.encode("novaSenha123")).thenReturn("hash-novo");
+
+        service.alterarSenha(new AlterarSenhaRequest("senha123", "novaSenha123"));
+
+        verify(repository).salvar(argThat(u -> "hash-novo".equals(u.getSenha())));
     }
 
     @Test

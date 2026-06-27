@@ -1,5 +1,7 @@
 package br.com.ravikyu.barbercontrol.application.servico.service;
 
+import br.com.ravikyu.barbercontrol.application.common.dto.PageResponse;
+import br.com.ravikyu.barbercontrol.application.common.util.PaginationUtils;
 import br.com.ravikyu.barbercontrol.application.servico.dto.AtualizarServicoRequest;
 import br.com.ravikyu.barbercontrol.application.servico.dto.CriarServicoRequest;
 import br.com.ravikyu.barbercontrol.application.servico.dto.ServicoResponse;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -33,6 +36,16 @@ public class ServicoService {
                 .stream()
                 .map(ServicoMapper::toResponse)
                 .toList();
+    }
+
+    public PageResponse<ServicoResponse> buscarPaginado(String nome, Boolean ativo, int page, int size) {
+        var servicos = repository.listarPorUsuario(usuarioProvider.getAdminUsuarioIdAutenticado())
+                .stream()
+                .filter(servico -> nome == null || servico.getNome().toLowerCase(Locale.ROOT).contains(nome.toLowerCase(Locale.ROOT)))
+                .filter(servico -> ativo == null || servico.isAtivo() == ativo)
+                .map(ServicoMapper::toResponse)
+                .toList();
+        return PaginationUtils.paginate(servicos, page, size);
     }
 
     public ServicoResponse buscar(UUID id) {

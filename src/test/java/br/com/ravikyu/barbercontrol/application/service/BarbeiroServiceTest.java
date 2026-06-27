@@ -99,6 +99,18 @@ class BarbeiroServiceTest {
     }
 
     @Test
+    @DisplayName("deveBuscarBarbeiroComSucesso")
+    void deveBuscarBarbeiroComSucesso() {
+        var barbeiro = barbeiroValido();
+        when(repository.buscarPorIdEUsuario(barbeiro.getId(), usuarioId)).thenReturn(Optional.of(barbeiro));
+
+        var response = service.buscar(barbeiro.getId());
+
+        assertEquals(barbeiro.getId(), response.id());
+        verify(repository).buscarPorIdEUsuario(barbeiro.getId(), usuarioId);
+    }
+
+    @Test
     @DisplayName("deveAtualizarBarbeiroComSucesso")
     void deveAtualizarBarbeiroComSucesso() {
         var barbeiro = barbeiroValido();

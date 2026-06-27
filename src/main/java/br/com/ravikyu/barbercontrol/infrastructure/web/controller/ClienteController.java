@@ -4,6 +4,7 @@ import br.com.ravikyu.barbercontrol.application.cliente.dto.AtualizarClienteRequ
 import br.com.ravikyu.barbercontrol.application.cliente.dto.ClienteResponse;
 import br.com.ravikyu.barbercontrol.application.cliente.dto.CriarClienteRequest;
 import br.com.ravikyu.barbercontrol.application.cliente.service.ClienteService;
+import br.com.ravikyu.barbercontrol.application.common.dto.PageResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,16 @@ public class ClienteController {
     @GetMapping
     public List<ClienteResponse> listar() {
         return service.listar();
+    }
+
+    @GetMapping("/busca")
+    public PageResponse<ClienteResponse> buscarPaginado(
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String telefone,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return service.buscarPaginado(nome, email, telefone, page, size);
     }
 
     @GetMapping("/{id}")

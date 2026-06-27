@@ -148,6 +148,36 @@ class UsuarioControllerTest {
     }
 
     @Test
+    @DisplayName("deveRenovarTokenComSucesso")
+    @WithMockUser(roles = "ADMIN")
+    void deveRenovarTokenComSucesso() throws Exception {
+        when(service.refreshToken()).thenReturn(new LoginResponse("novo-token", "Bearer"));
+
+        mockMvc.perform(post("/usuarios/refresh"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("novo-token"));
+
+        verify(service).refreshToken();
+    }
+
+    @Test
+    @DisplayName("deveAlterarSenhaComSucesso")
+    @WithMockUser(roles = "ADMIN")
+    void deveAlterarSenhaComSucesso() throws Exception {
+        mockMvc.perform(patch("/usuarios/alterar-senha")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                    "senhaAtual": "senha123",
+                                    "novaSenha": "novaSenha123"
+                                }
+                                """))
+                .andExpect(status().isNoContent());
+
+        verify(service).alterarSenha(any());
+    }
+
+    @Test
     @DisplayName("deveRetornarPerfilAutenticadoComSucesso")
     @WithMockUser(roles = "ADMIN")
     void deveRetornarPerfilAutenticadoComSucesso() throws Exception {

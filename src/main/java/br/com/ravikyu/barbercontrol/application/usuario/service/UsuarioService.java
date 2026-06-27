@@ -1,5 +1,6 @@
 package br.com.ravikyu.barbercontrol.application.usuario.service;
 
+import br.com.ravikyu.barbercontrol.application.usuario.dto.AlterarSenhaRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastrarFuncionarioRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.CadastroRequest;
 import br.com.ravikyu.barbercontrol.application.usuario.dto.LoginRequest;
@@ -75,6 +76,22 @@ public class UsuarioService {
 
         var token = tokenProvider.gerarToken(usuario.getEmail());
         return UsuarioMapper.toResponse(token);
+    }
+
+    public LoginResponse refreshToken() {
+        var usuario = usuarioAutenticadoProvider.getUsuarioAutenticado();
+        return UsuarioMapper.toResponse(tokenProvider.gerarToken(usuario.getEmail()));
+    }
+
+    public void alterarSenha(AlterarSenhaRequest dto) {
+        var usuario = usuarioAutenticadoProvider.getUsuarioAutenticado();
+
+        if (!passwordEncoder.matches(dto.senhaAtual(), usuario.getSenha())) {
+            throw new BusinessException("Senha atual inválida");
+        }
+
+        usuario.setSenha(passwordEncoder.encode(dto.novaSenha()));
+        repository.salvar(usuario);
     }
 
     public UsuarioResponse buscarAutenticado() {
